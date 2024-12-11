@@ -24,4 +24,5 @@ int main(int argc, char *argv[])
 void clearResources(int signum)
 {
     // TODO Clears all resources in case of interruption
+    raise(SIGTERM);
 }
