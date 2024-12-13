@@ -1,10 +1,58 @@
-#include "headers.h"
+#include <headers.h>
+#include <Queue.h>
 
 void clearResources(int);
 
 int main(int argc, char *argv[])
 {
+    //creating the queue for processes
+    Queue *proccesqueue;
+    proccesqueue = createQueue();
+
+
+    //pointer to handle the input file
+    FILE *inputfile;
+
+
+    //array of characters as we read the input file line by line
+    char fileline [20];
     signal(SIGINT, clearResources);
+
+
+    //input file processing
+    inputfile = fopen("processes.txt", "r");
+    if (inputfile == NULL)
+    {
+        perror("Error opening file");
+        return -1;
+    }
+
+
+    //reading the input file line by line and soring the parameters of each process in processobj 
+    //then enqueuing the process in the process queue 
+    while(fgets(fileline,sizeof(fileline),inputfile))
+    {
+        if (fileline[0]=="#")
+        {
+            continue;
+        }
+        processdata processobj;
+        if (sscanf(fileline, "%d\t%d\t%d\t%d", &processobj.id, &processobj.arrivaltime, &processobj.runningtime, &processobj.priority) == 4) 
+        {
+            enqueue_proc(proccesqueue,processobj);
+        }
+        else
+        {
+            //fprintf(stderr, "Error reading values from line: %s", fileline);
+            perror("error in reading input file");
+
+        }
+
+    }
+
+    //input file processing is done so its best to close the file
+    fclose (inputfile);
+
     // TODO Initialization
     // 1. Read the input files.
     // 2. Read the chosen scheduling algorithm and its parameters, if there are any from the argument list.
