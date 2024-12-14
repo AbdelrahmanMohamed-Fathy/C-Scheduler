@@ -8,7 +8,7 @@
 void clearResources(int);
 
 Queue *proccesqueue;
-bool DebugMode = false;
+bool DebugMode = true;
 Algorithm SchedulingAlgorithm = Shortest_Job_First;
 int Quantum = 2;
 int ProcessMessageQueue = -1;
@@ -25,15 +25,15 @@ int main(int argc, char *argv[])
     signal(SIGINT, clearResources);
     proccesqueue = CreateQueue();
     // for (int i = 1; i < argc; i++)
-    // {
-    // if (strcmp(argv[i], "-d"))
-    // DebugMode = true;
-    // if (strcmp(argv[i], "-sch"))
-    // SchedulingAlgorithm = atoi(argv[i + 1]);
-    // if (strcmp(argv[i], "-q"))
-    // Quantum = atoi(argv[i + 1]);
+    //{
+    //     if (strcmp(argv[i], "-d"))
+    //     DebugMode = true;
+    //     if (strcmp(argv[i], "-sch"))
+    //     SchedulingAlgorithm = atoi(argv[i + 1]);
+    //     if (strcmp(argv[i], "-q"))
+    //     Quantum = atoi(argv[i + 1]);
     // }
-    //
+
     FILE *inputfile;
 
     char fileline[20];
@@ -90,6 +90,7 @@ int main(int argc, char *argv[])
     printf("Current Time is %d\n", x);
     // TODO Generation Main Loop
     // 5. Create a data structure for processes and provide it with its parameters.
+    /*
     ProcessMessageQueue = msgget(MSGKEY, IPC_CREAT | 0666);
     if (ProcessMessageQueue == -1)
     {
@@ -97,24 +98,30 @@ int main(int argc, char *argv[])
         exit(-1);
     }
     // 6. Send the information to the scheduler at the appropriate time.
+    */
     processData *data;
-
     while (Dequeue(proccesqueue, data))
     {
+        if (DebugMode)
+            printf("retrieved data with id: %d\n", data->id);
         while (data->arrivaltime > getClk())
+        {
+            if (DebugMode)
+                printf("arrival time: %d, clk time: %d\n", data->arrivaltime, getClk());
             continue;
+        }
         // send process to scheduler
         free(data);
     }
     // 7. Clear clock resources
     destroyClk(true);
-    printf("generator terminating normally.");
+    printf("generator terminating normally.\n");
 }
 
 void clearResources(int signum)
 {
     // TODO Clears all resources in case of interruption
-    printf("generator terminating abnormally.");
+    printf("generator terminating abnormally.\n");
     processData *data;
     while (Dequeue(proccesqueue, data))
     {
