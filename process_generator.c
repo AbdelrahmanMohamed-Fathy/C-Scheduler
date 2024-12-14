@@ -17,7 +17,7 @@ typedef struct readyQueue
 {
     processData processobj;
 
-}readyQueue;
+} readyQueue;
 
 int main(int argc, char *argv[])
 {
@@ -91,16 +91,14 @@ int main(int argc, char *argv[])
     // TODO Generation Main Loop
     // 5. Create a data structure for processes and provide it with its parameters.
     ProcessMessageQueue = msgget(MSGKEY, IPC_CREAT | 0666);
-    // 6. Send the information to the scheduler at the appropriate time.
-    processData *data;
-    readyQueue readyqueue;
-    key_t readykey = ftok("keyfile",69);
-    readyqueue = msgget(readykey,0666|IPC_CREAT);
-    if (readyqueue==-1)
+    if (ProcessMessageQueue == -1)
     {
         printf("Error in creating ready queue \n");
         exit(-1);
     }
+    // 6. Send the information to the scheduler at the appropriate time.
+    processData *data;
+
     while (Dequeue(proccesqueue, data))
     {
         while (data->arrivaltime > getClk())
