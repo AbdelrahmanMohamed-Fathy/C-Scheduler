@@ -80,8 +80,6 @@ void prienqueue_poc(priQueue *q, processdata process, int priority)
         q->rear->next = new_node;
         q->rear = new_node;
     }
-    free(temp);
-    free(temp2);
 }
 
 void pridequeue_proc(priQueue *q)
