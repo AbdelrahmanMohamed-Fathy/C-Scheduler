@@ -7,9 +7,12 @@ build:
 	gcc test_generator.c -o bin/test_generator.out
 
 clean:
-	rm -f bin/*.out  bin/processes.txt
+	rm -f bin/*.out  processes.txt
 
 all: clean build
+
+generate: 
+	./bin/test_generator.out
 
 run:
 	./bin/process_generator.out

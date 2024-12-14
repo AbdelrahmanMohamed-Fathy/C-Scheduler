@@ -32,9 +32,8 @@ priQueue *createpriQueue()
     return q;
 }
 
-int isEmpty(priQueue *q)
+bool isPriQueueEmpty(priQueue *q)
 {
-
     if (q->front == NULL && q->rear == NULL)
     {
         return 1;
@@ -44,7 +43,7 @@ int isEmpty(priQueue *q)
 
 void prienqueue_poc(priQueue *q, processdata process, int priority)
 {
-    priNode *new_node = createNode(process);
+    priNode *new_node = createpriNode(process);
 
     if (q->rear == NULL)
     {
@@ -88,7 +87,7 @@ void prienqueue_poc(priQueue *q, processdata process, int priority)
 void pridequeue_proc(priQueue *q)
 {
 
-    if (isEmpty(q))
+    if (isPriQueueEmpty(q))
     {
         printf("Queue is empty\n");
         return;

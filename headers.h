@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#ifndef HEADER_H
+#define HEADER_H
 
 typedef short bool;
 #define true 1
@@ -68,3 +70,4 @@ void destroyClk(bool terminateAll)
         killpg(getpgrp(), SIGINT);
     }
 }
+#endif

@@ -30,7 +30,7 @@ Queue *createQueue()
     return q;
 }
 
-int isEmpty(Queue *q)
+bool isQueueEmpty(Queue *q)
 {
 
     if (q->front == NULL && q->rear == NULL)
@@ -59,7 +59,7 @@ void enqueue_proc(Queue *q, processdata process)
 void dequeue_proc(Queue *q)
 {
 
-    if (isEmpty(q))
+    if (isQueueEmpty(q))
     {
         printf("Queue is empty\n");
         return;

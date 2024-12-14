@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     // then enqueuing the process in the process queue
     while (fgets(fileline, sizeof(fileline), inputfile))
     {
-        if (fileline[0] == "#")
+        if (fileline[0] == '#')
         {
             continue;
         }
