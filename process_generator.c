@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <getopt.h>
 #include <string.h>
 #include "headers.h"
 #include "DataStructures/Queue.h"
@@ -11,13 +12,9 @@ bool DebugMode = false;
 
 int main(int argc, char *argv[])
 {
+
     signal(SIGINT, clearResources);
     proccesqueue = CreateQueue();
-
-    if (argc > 1)
-    {
-        DebugMode = atoi(argv[1]);
-    }
 
     FILE *inputfile;
 
@@ -30,6 +27,9 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Error opening file. %s\n", strerror(errno));
         exit(1);
     }
+
+    // TODO Initialization
+    // 1. Read the input files.
     // reading the input file line by line and soring the parameters of each process in processobj
     // then enqueuing the process in the process queue
     processData *processobj;
@@ -52,16 +52,19 @@ int main(int argc, char *argv[])
         }
     }
     fclose(inputfile);
-
-    // TODO Initialization
-    // 1. Read the input files.
     // 2. Read the chosen scheduling algorithm and its parameters, if there are any from the argument list.
+
+    // 3. Initiate and create the scheduler and clock processes.
     pid_t clock = fork();
     if (clock == 0)
     {
         execl("bin/clk.out", "./clk.out", NULL);
     }
-    // 3. Initiate and create the scheduler and clock processes.
+    pid_t scheduler = fork();
+    if (scheduler == 0)
+    {
+        execl("bin/scheduler.out", "./scheduler.out", NULL);
+    }
     // 4. Use this function after creating the clock process to initialize clock.
     initClk();
     // To get time use this function.
@@ -70,13 +73,16 @@ int main(int argc, char *argv[])
     // TODO Generation Main Loop
     // 5. Create a data structure for processes and provide it with its parameters.
     // 6. Send the information to the scheduler at the appropriate time.
-    // 7. Clear clock resources
     processData *data;
     while (Dequeue(proccesqueue, data))
     {
+        while (data->arrivaltime < getClk())
+            continue;
+        // send process to scheduler
         free(data);
     }
-    destroyClk(true);
+    // 7. Clear clock resources
+    destroyClk(false);
 }
 
 void clearResources(int signum)
@@ -87,5 +93,6 @@ void clearResources(int signum)
     {
         free(data);
     }
+    destroyClk(false);
     exit(1);
 }

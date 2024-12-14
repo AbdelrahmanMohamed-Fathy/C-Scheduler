@@ -6,6 +6,7 @@ typedef struct priQueue
 {
     priNode *front;
     priNode *rear;
+    int count;
 } priQueue;
 
 priNode *CreatePriNode(processData *p)
@@ -48,6 +49,7 @@ void PriEnqueue(priQueue *q, processData *process, int priority)
     {
         q->front = new_node;
         q->rear = new_node;
+        q->count++;
         return;
     }
     priNode *current = q->front;
@@ -55,6 +57,7 @@ void PriEnqueue(priQueue *q, processData *process, int priority)
     {
         new_node->next = q->front;
         q->front = new_node;
+        q->count++;
         return;
     }
     priNode *previous = q->front;
@@ -65,6 +68,7 @@ void PriEnqueue(priQueue *q, processData *process, int priority)
         {
             new_node->next = current;
             previous->next = new_node;
+            q->count++;
             return;
         }
         else
@@ -75,6 +79,7 @@ void PriEnqueue(priQueue *q, processData *process, int priority)
     }
     q->rear->next = new_node;
     q->rear = new_node;
+    q->count++;
 }
 
 bool PriDequeue(priQueue *q, processData *data)
@@ -92,5 +97,6 @@ bool PriDequeue(priQueue *q, processData *data)
         q->rear = NULL;
     }
     free(Current);
+    q->count--;
     return true;
 }

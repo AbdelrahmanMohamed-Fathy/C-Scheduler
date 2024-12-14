@@ -6,6 +6,7 @@ typedef struct Queue
 {
     Node *front;
     Node *rear;
+    int count;
 } Queue;
 
 Node *CreateNode(processData *p)
@@ -53,6 +54,7 @@ void Enqueue(Queue *q, processData *process)
         q->rear->next = new_node;
         q->rear = new_node;
     }
+    q->count++;
 }
 
 bool Dequeue(Queue *q, processData *data)
@@ -70,5 +72,6 @@ bool Dequeue(Queue *q, processData *data)
         q->rear = NULL;
     }
     free(current);
+    q->count--;
     return true;
 }
