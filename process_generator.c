@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     }
     while (Dequeue(proccesqueue, data))
     {
-        while (data->arrivaltime < getClk())
+        while (data->arrivaltime > getClk())
             continue;
         // send process to scheduler
         free(data);
