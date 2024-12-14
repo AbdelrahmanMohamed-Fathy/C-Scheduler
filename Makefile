@@ -20,4 +20,4 @@ run:
 
 debug:
 	./bin/test_generator.out
-	./bin/process_generator.out
+	./bin/process_generator.out -d

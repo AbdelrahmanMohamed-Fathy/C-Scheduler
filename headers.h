@@ -27,6 +27,14 @@ typedef struct processData
     int id;
 } processData;
 
+typedef enum Algorithm
+{
+    Shortest_Job_First = 1,
+    Premptive_Highest_Priority_First = 2,
+    Round_Robin = 3,
+    Multiple_Level_Feedback_Loop = 4
+} Algorithm;
+
 ///==============================
 // don't mess with this variable//
 int *shmaddr; //

@@ -9,13 +9,25 @@ void clearResources(int);
 
 Queue *proccesqueue;
 bool DebugMode = false;
+Algorithm SchedulingAlgorithm = Shortest_Job_First;
+int Quantum = 2;
+int ProcessMessageQueue = -1;
 
 int main(int argc, char *argv[])
 {
 
     signal(SIGINT, clearResources);
     proccesqueue = CreateQueue();
-
+    // for (int i = 1; i < argc; i++)
+    // {
+    // if (strcmp(argv[i], "-d"))
+    // DebugMode = true;
+    // if (strcmp(argv[i], "-sch"))
+    // SchedulingAlgorithm = atoi(argv[i + 1]);
+    // if (strcmp(argv[i], "-q"))
+    // Quantum = atoi(argv[i + 1]);
+    // }
+    //
     FILE *inputfile;
 
     char fileline[20];
@@ -72,27 +84,30 @@ int main(int argc, char *argv[])
     printf("Current Time is %d\n", x);
     // TODO Generation Main Loop
     // 5. Create a data structure for processes and provide it with its parameters.
+    ProcessMessageQueue = msgget(MSGKEY, IPC_CREAT | 0666);
     // 6. Send the information to the scheduler at the appropriate time.
     processData *data;
     while (Dequeue(proccesqueue, data))
     {
-        while (data->arrivaltime < getClk())
+        while (data->arrivaltime > getClk())
             continue;
         // send process to scheduler
         free(data);
     }
     // 7. Clear clock resources
-    destroyClk(false);
+    destroyClk(true);
+    printf("generator terminating normally.");
 }
 
 void clearResources(int signum)
 {
     // TODO Clears all resources in case of interruption
+    printf("generator terminating abnormally.");
     processData *data;
     while (Dequeue(proccesqueue, data))
     {
         free(data);
     }
-    destroyClk(false);
+    destroyClk(true);
     exit(1);
 }
