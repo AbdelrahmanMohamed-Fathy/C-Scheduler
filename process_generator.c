@@ -1,5 +1,6 @@
 #include <headers.h>
 #include <Queue.h>
+#include <priQueue.h>
 
 void clearResources(int);
 
@@ -36,7 +37,7 @@ int main(int argc, char *argv[])
         {
             continue;
         }
-        processdata processobj;
+        struct processData processobj;
         if (sscanf(fileline, "%d\t%d\t%d\t%d", &processobj.id, &processobj.arrivaltime, &processobj.runningtime, &processobj.priority) == 4) 
         {
             enqueue_proc(proccesqueue,processobj);

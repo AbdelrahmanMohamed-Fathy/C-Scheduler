@@ -1,10 +1,10 @@
 #include<headers.h>
 #ifndef NODE_H 
-#define NODE_H // Define a node in the queue 
+#define NODE_H  
 
 typedef struct Node 
 {
-    processData processobj; 
+    processdata processobj; 
     struct Node *next;
 } Node;
 #endif

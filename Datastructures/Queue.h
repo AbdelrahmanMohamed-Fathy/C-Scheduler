@@ -64,8 +64,6 @@ void dequeue_proc(Queue* q)
         printf("Queue is empty\n");
         return;
     }
-
-
     Node* temp = q->front;
     q->front = q->front->next;
 

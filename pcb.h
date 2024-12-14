@@ -1,0 +1,1 @@
+//here is the struct with the start time/remaining time etc.
