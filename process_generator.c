@@ -10,6 +10,12 @@ void clearResources(int);
 Queue *proccesqueue;
 bool DebugMode = false;
 
+typedef struct readyQueue
+{
+    processData processobj;
+
+}readyQueue;
+
 int main(int argc, char *argv[])
 {
 
@@ -74,6 +80,14 @@ int main(int argc, char *argv[])
     // 5. Create a data structure for processes and provide it with its parameters.
     // 6. Send the information to the scheduler at the appropriate time.
     processData *data;
+    readyQueue readyqueue;
+    key_t readykey = ftok("keyfile",69);
+    readyqueue = msgget(readykey,0666|IPC_CREAT);
+    if (readyqueue==-1)
+    {
+        printf("Error in creating ready queue \n");
+        exit(-1);
+    }
     while (Dequeue(proccesqueue, data))
     {
         while (data->arrivaltime < getClk())
