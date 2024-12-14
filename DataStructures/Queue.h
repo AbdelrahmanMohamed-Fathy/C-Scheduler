@@ -34,9 +34,9 @@ bool isQueueEmpty(Queue *q)
 
     if (q->front == NULL && q->rear == NULL)
     {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 void Enqueue(Queue *q, processData *process)
