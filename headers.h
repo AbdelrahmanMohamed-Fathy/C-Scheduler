@@ -1,3 +1,4 @@
+#pragma once
 #include <stdio.h> //if you don't use scanf/printf change this include
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -10,8 +11,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
-#ifndef HEADER_H
-#define HEADER_H
 
 typedef short bool;
 #define true 1
@@ -25,7 +24,7 @@ typedef struct processData
     int priority;
     int runningtime;
     int id;
-} processdata;
+} processData;
 
 ///==============================
 // don't mess with this variable//
@@ -70,4 +69,3 @@ void destroyClk(bool terminateAll)
         killpg(getpgrp(), SIGINT);
     }
 }
-#endif

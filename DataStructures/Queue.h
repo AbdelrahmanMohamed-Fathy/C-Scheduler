@@ -1,7 +1,6 @@
+#pragma once
 #include "../headers.h"
 #include "Node.h"
-#ifndef QUEUE_H
-#define QUEUE_H
 
 typedef struct Queue
 {
@@ -9,7 +8,7 @@ typedef struct Queue
     Node *rear;
 } Queue;
 
-Node *createNode(processdata p)
+Node *CreateNode(processData *p)
 {
     Node *new_node = (Node *)malloc(sizeof(Node));
     if (new_node == NULL)
@@ -22,7 +21,7 @@ Node *createNode(processdata p)
     return new_node;
 }
 
-Queue *createQueue()
+Queue *CreateQueue()
 {
     Queue *q = (Queue *)malloc(sizeof(Queue));
     q->front = NULL;
@@ -40,9 +39,9 @@ bool isQueueEmpty(Queue *q)
     return 0;
 }
 
-void enqueue_proc(Queue *q, processdata process)
+void Enqueue(Queue *q, processData *process)
 {
-    Node *new_node = createNode(process);
+    Node *new_node = CreateNode(process);
 
     if (q->rear == NULL)
     {
@@ -56,22 +55,20 @@ void enqueue_proc(Queue *q, processdata process)
     }
 }
 
-void dequeue_proc(Queue *q)
+bool Dequeue(Queue *q, processData *data)
 {
-
-    if (isQueueEmpty(q))
+    if (!q->front)
     {
-        printf("Queue is empty\n");
-        return;
+        data = NULL;
+        return false;
     }
-    Node *temp = q->front;
+    Node *current = q->front;
     q->front = q->front->next;
-
+    data = current->processobj;
     if (q->front == NULL)
     {
         q->rear = NULL;
     }
-
-    free(temp);
+    free(current);
+    return true;
 }
-#endif

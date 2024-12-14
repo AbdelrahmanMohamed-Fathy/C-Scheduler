@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 {
     // creating the queue for processes
     Queue *proccesqueue;
-    proccesqueue = createQueue();
+    proccesqueue = CreateQueue();
 
     // pointer to handle the input file
     FILE *inputfile;
@@ -27,16 +27,17 @@ int main(int argc, char *argv[])
 
     // reading the input file line by line and soring the parameters of each process in processobj
     // then enqueuing the process in the process queue
+    processData *processobj;
     while (fgets(fileline, sizeof(fileline), inputfile))
     {
         if (fileline[0] == '#')
         {
             continue;
         }
-        struct processData processobj;
-        if (sscanf(fileline, "%d\t%d\t%d\t%d", &processobj.id, &processobj.arrivaltime, &processobj.runningtime, &processobj.priority) == 4)
+        processobj = (processData *)malloc(sizeof(processData));
+        if (sscanf(fileline, "%d\t%d\t\t%d\t\t%d\n", &processobj->id, &processobj->arrivaltime, &processobj->runningtime, &processobj->priority) == 4)
         {
-            enqueue_proc(proccesqueue, processobj);
+            Enqueue(proccesqueue, processobj);
         }
         else
         {

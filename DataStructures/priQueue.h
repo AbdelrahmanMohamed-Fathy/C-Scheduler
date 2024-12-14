@@ -1,7 +1,6 @@
+#pragma once
 #include "../headers.h"
 #include "priNode.h"
-#ifndef PRIQUEUE_H
-#define PRIQUEUE_H
 
 typedef struct priQueue
 {
@@ -9,7 +8,7 @@ typedef struct priQueue
     priNode *rear;
 } priQueue;
 
-priNode *createpriNode(processdata p)
+priNode *CreatePriNode(processData *p)
 {
     priNode *new_node = (priNode *)malloc(sizeof(priNode));
     if (new_node == NULL)
@@ -18,13 +17,13 @@ priNode *createpriNode(processdata p)
         exit(EXIT_FAILURE);
     }
     new_node->processobj = p;
-    new_node->priority = p.priority;
+    new_node->priority = p->priority;
     new_node->next = NULL;
 
     return new_node;
 }
 
-priQueue *createpriQueue()
+priQueue *CreatePriQueue()
 {
     priQueue *q = (priQueue *)malloc(sizeof(priQueue));
     q->front = NULL;
@@ -36,71 +35,62 @@ bool isPriQueueEmpty(priQueue *q)
 {
     if (q->front == NULL && q->rear == NULL)
     {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
-void prienqueue_poc(priQueue *q, processdata process, int priority)
+void PriEnqueue(priQueue *q, processData *process, int priority)
 {
-    priNode *new_node = createpriNode(process);
+    priNode *new_node = CreatePriNode(process);
 
     if (q->rear == NULL)
     {
         q->front = new_node;
         q->rear = new_node;
+        return;
     }
-    priNode *temp = q->front;
-    priNode *temp2 = q->front;
-    if (new_node->priority < temp->priority)
+    priNode *current = q->front;
+    if (new_node->priority < current->priority)
     {
         new_node->next = q->front;
         q->front = new_node;
-        temp = temp->next;
-    }
-    else
-    {
-        temp = temp->next;
-        while (temp)
-        {
-            if (new_node->priority < temp->priority)
-            {
-                new_node->next = temp;
-                temp2->next = new_node;
-                temp = temp->next;
-                temp2 = temp2->next;
-                break;
-            }
-            else
-            {
-                temp = temp->next;
-                temp2 = temp2->next;
-            }
-        }
-        q->rear->next = new_node;
-        q->rear = new_node;
-    }
-    free(temp);
-    free(temp2);
-}
-
-void pridequeue_proc(priQueue *q)
-{
-
-    if (isPriQueueEmpty(q))
-    {
-        printf("Queue is empty\n");
         return;
     }
+    priNode *previous = q->front;
+    current = current->next;
+    while (current)
+    {
+        if (new_node->priority < current->priority)
+        {
+            new_node->next = current;
+            previous->next = new_node;
+            return;
+        }
+        else
+        {
+            current = current->next;
+            previous = previous->next;
+        }
+    }
+    q->rear->next = new_node;
+    q->rear = new_node;
+}
 
-    priNode *temp = q->front;
+bool PriDequeue(priQueue *q, processData *data)
+{
+    if (!q->front)
+    {
+        data = NULL;
+        return false;
+    }
+    priNode *Current = q->front;
     q->front = q->front->next;
-
+    data = Current->processobj;
     if (q->front == NULL)
     {
         q->rear = NULL;
     }
-
-    free(temp);
+    free(Current);
+    return true;
 }
-#endif
