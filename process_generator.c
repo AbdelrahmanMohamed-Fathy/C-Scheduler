@@ -11,19 +11,21 @@ Algorithm SchedulingAlgorithm = Shortest_Job_First;
 int Quantum = 2;
 int ProcessMessageQueue = -1;
 
-
 int main(int argc, char *argv[])
 {
-
     signal(SIGINT, clearResources);
+
+    char *FilePath;
     for (int i = 1; i < argc; i++)
     {
         if (strcmp(argv[i], "-d") == 0)
             DebugMode = true;
-        if (strcmp(argv[i], "-sch") == 0)
+        else if (strcmp(argv[i], "-sch") == 0)
             SchedulingAlgorithm = atoi(argv[i + 1]);
-        if (strcmp(argv[i], "-q") == 0)
+        else if (strcmp(argv[i], "-q") == 0)
             Quantum = atoi(argv[i + 1]);
+        else
+            FilePath = argv[i];
     }
 
     FILE *inputfile;
@@ -31,7 +33,7 @@ int main(int argc, char *argv[])
     char fileline[20];
 
     errno = 0;
-    inputfile = fopen("processes.txt", "r");
+    inputfile = fopen(FilePath, "r");
     if (errno != 0)
     {
         fprintf(stderr, "Error opening file. %s\n", strerror(errno));
@@ -40,6 +42,11 @@ int main(int argc, char *argv[])
 
     // TODO Initialization
     // 1. Read the input files.
+    // 2. Read the chosen scheduling algorithm and its parameters, if there are any from the argument list.
+    // 3. Initiate and create the scheduler and clock processes.
+    // 4. Use this function after creating the clock process to initialize clock.initClk();
+    // 5. Create a data structure for processes and provide it with its parameters.
+
     // reading the input file line by line and soring the parameters of each process in processobj
     // then enqueuing the process in the process queue
     proccesqueue = CreateQueue();
@@ -63,8 +70,7 @@ int main(int argc, char *argv[])
         }
     }
     fclose(inputfile);
-    // 2. Read the chosen scheduling algorithm and its parameters, if there are any from the argument list.
-    // 3. Initiate and create the scheduler and clock processes.
+
     pid_t clock = fork();
     if (clock == 0)
     {
@@ -74,24 +80,26 @@ int main(int argc, char *argv[])
     pid_t scheduler = fork();
     if (scheduler == 0)
     {
-        execl("bin/scheduler.out", "./scheduler.out", NULL);
+        execl("bin/scheduler.out", "./scheduler.out", SchedulingAlgorithm, Quantum, NULL);
     }
-    //  4.Use this function after creating the clock process to initialize clock.initClk();
     //  To get time use this function.
     int x = getClk();
     printf("Current Time is %d\n", x);
+
     // TODO Generation Main Loop
-    // 5. Create a data structure for processes and provide it with its parameters.
+    // 6. Send the information to the scheduler at the appropriate time.
+    // 7. Clear clock resources
+
     ProcessMessageQueue = msgget(MSGKEY, IPC_CREAT | 0666);
     if (ProcessMessageQueue == -1)
     {
         printf("Error in creating ready queue \n");
         destroyClk(true);
     }
-    // 6. Send the information to the scheduler at the appropriate time.
     if (DebugMode)
         printf("sending data to scheduler.\n");
     processData *data;
+    msg SchedulerMessage;
     while (Dequeue(proccesqueue, &data))
     {
         if (DebugMode)
@@ -100,8 +108,7 @@ int main(int argc, char *argv[])
         while (data->arrivaltime > getClk())
             continue;
 
-        msg SchedulerMessage;
-        SchedulerMessage.mtype = SchedulingAlgorithm;
+        SchedulerMessage.mtype = 1;
         memcpy(&SchedulerMessage.data, data, sizeof(processData));
         if (msgsnd(ProcessMessageQueue, &SchedulerMessage, sizeof(SchedulerMessage), !IPC_NOWAIT) != -1)
         {
@@ -110,10 +117,14 @@ int main(int argc, char *argv[])
         }
         free(data);
     }
-    // 7. Clear clock resources
+    // Terminating message
+    SchedulerMessage.mtype = 20;
+    msgsnd(ProcessMessageQueue, &SchedulerMessage, sizeof(SchedulerMessage), !IPC_NOWAIT);
+
     if (DebugMode)
         printf("generator terminating normally.\n");
-    destroyClk(true);
+    destroyClk(false);
+    clearResources(0);
 }
 
 void clearResources(int signum)

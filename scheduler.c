@@ -1,23 +1,39 @@
-#include "headers.h"
 #include "DataStructures/priQueue.h"
+#include "headers.h"
+#include "cpuData.h"
 #include "pcb.h"
+#include "hpf.h"
 
 void clearResources(int signum);
 
 int ProcessMessageQueue;
 
+// TODO: implement the scheduler.
+// TODO: upon termination release the clock resources.
 int main(int argc, char *argv[])
 {
     signal(SIGINT, clearResources);
     initClk();
-
+    Algorithm SchedulingAlgorithm = atoi(argv[1]);
+    int Quantum = atoi(argv[2]);
     ProcessMessageQueue = msgget(MSGKEY, IPC_CREAT | 0666);
-    //SJF();
-    // TODO: implement the scheduler.
-    // TODO: upon termination release the clock resources.
+
+    switch (SchedulingAlgorithm)
+    {
+    case Shortest_Job_First:
+        // SJF();
+        break;
+    case Premptive_Highest_Priority_First:
+        HPF(ProcessMessageQueue);
+        break;
+    case Round_Robin:
+        break;
+    case Multiple_Level_Feedback_Loop:
+        break;
+    }
 
     printf("scheduler terminating normally.\n");
-    destroyClk(false);
+    destroyClk(true);
     clearResources(0);
 }
 
