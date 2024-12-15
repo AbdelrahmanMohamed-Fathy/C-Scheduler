@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
 
     printf("scheduler terminating normally.\n");
     destroyClk(false);
+    clearResources(0);
 }
 
 void clearResources(int signum)

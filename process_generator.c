@@ -113,7 +113,6 @@ int main(int argc, char *argv[])
             if (DebugMode)
                 printf("Message sent succesfully for process with id: %d\n", SchedulerMessage.data.id);
         }
-
         free(data);
     }
     // 7. Clear clock resources
