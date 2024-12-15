@@ -80,7 +80,11 @@ int main(int argc, char *argv[])
     pid_t scheduler = fork();
     if (scheduler == 0)
     {
-        execl("bin/scheduler.out", "./scheduler.out", SchedulingAlgorithm, Quantum, NULL);
+        char *algo;
+        char *quant;
+        sprintf(algo, "%d", SchedulingAlgorithm);
+        sprintf(quant, "%d", Quantum);
+        execl("bin/scheduler.out", "./scheduler.out", algo, quant, NULL);
     }
     //  To get time use this function.
     int x = getClk();
