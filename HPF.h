@@ -69,7 +69,9 @@ void HPF(int ProcessArrivalQueue)
                 CurrentRunningProcess->ID = fork();
                 if (CurrentRunningProcess->ID == 0)
                 {
-                    execl("bin/process.out", "./process.out", NULL);
+                    char runtime[4];
+                    sprintf(runtime, "%d", CurrentRunningProcess->RunningTime);
+                    execl("bin/process.out", "./process.out", runtime, NULL);
                 }
                 else
                 {

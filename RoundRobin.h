@@ -1,6 +1,6 @@
 #include "headers.h"
 #include "DataStructures/CircularQueue.h"
-#include "pcb.h"
+#include "PCB.h"
 
 void RR(int ProcessMessageQueue, int quantum)
 {

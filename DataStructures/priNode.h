@@ -1,6 +1,6 @@
 #pragma once
 #include "../headers.h"
-#include "../pcb.h"
+#include "../PCB.h"
 
 typedef struct priNode
 {

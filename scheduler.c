@@ -1,8 +1,7 @@
 #include "DataStructures/priQueue.h"
 #include "headers.h"
 #include "cpuData.h"
-#include "pcb.h"
-#include "hpf.h"
+#include "HPF.h"
 #include "RoundRobin.h"
 
 void clearResources(int signum);
@@ -44,4 +43,3 @@ void clearResources(int signum)
     msgctl(ProcessMessageQueue, IPC_RMID, NULL);
     exit(1);
 }
-
