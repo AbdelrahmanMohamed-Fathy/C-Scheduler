@@ -27,6 +27,7 @@ Queue *CreateQueue()
     Queue *q = (Queue *)malloc(sizeof(Queue));
     q->front = NULL;
     q->rear = NULL;
+    q->count = 0;
     return q;
 }
 
@@ -40,9 +41,9 @@ bool isQueueEmpty(Queue *q)
     return false;
 }
 
-void Enqueue(Queue *q, processData *process)
+void Enqueue(Queue *q, processData **process)
 {
-    Node *new_node = CreateNode(process);
+    Node *new_node = CreateNode(*process);
 
     if (q->rear == NULL)
     {
@@ -57,7 +58,7 @@ void Enqueue(Queue *q, processData *process)
     q->count++;
 }
 
-bool Dequeue(Queue *q, processData *data)
+bool Dequeue(Queue *q, processData **data)
 {
     if (!q->front)
     {
@@ -66,7 +67,7 @@ bool Dequeue(Queue *q, processData *data)
     }
     Node *current = q->front;
     q->front = q->front->next;
-    data = current->processobj;
+    *data = current->processobj;
     if (q->front == NULL)
     {
         q->rear = NULL;

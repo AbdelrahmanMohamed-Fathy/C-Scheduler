@@ -6,15 +6,16 @@ int ProcessMessageQueue;
 
 int main(int argc, char *argv[])
 {
+    signal(SIGINT, clearResources);
     initClk();
 
     ProcessMessageQueue = msgget(MSGKEY, IPC_CREAT | 0666);
     // TODO: implement the scheduler.
     // TODO: upon termination release the clock resources.
 
-    destroyClk(false);
-    msgctl(ProcessMessageQueue, IPC_RMID, NULL);
     printf("scheduler terminating normally.\n");
+    msgctl(ProcessMessageQueue, IPC_RMID, NULL);
+    destroyClk(false);
 }
 
 void clearResources(int signum)

@@ -29,6 +29,7 @@ priQueue *CreatePriQueue()
     priQueue *q = (priQueue *)malloc(sizeof(priQueue));
     q->front = NULL;
     q->rear = NULL;
+    q->count = 0;
     return q;
 }
 
@@ -41,9 +42,9 @@ bool isPriQueueEmpty(priQueue *q)
     return false;
 }
 
-void PriEnqueue(priQueue *q, processData *process, int priority)
+void PriEnqueue(priQueue *q, processData **process, int priority)
 {
-    priNode *new_node = CreatePriNode(process);
+    priNode *new_node = CreatePriNode(*process);
 
     if (q->rear == NULL)
     {
@@ -82,7 +83,7 @@ void PriEnqueue(priQueue *q, processData *process, int priority)
     q->count++;
 }
 
-bool PriDequeue(priQueue *q, processData *data)
+bool PriDequeue(priQueue *q, processData **data)
 {
     if (!q->front)
     {
@@ -91,7 +92,7 @@ bool PriDequeue(priQueue *q, processData *data)
     }
     priNode *Current = q->front;
     q->front = q->front->next;
-    data = Current->processobj;
+    *data = Current->processobj;
     if (q->front == NULL)
     {
         q->rear = NULL;
