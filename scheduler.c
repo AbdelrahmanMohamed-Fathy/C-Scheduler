@@ -1,5 +1,5 @@
 #include "headers.h"
-#include "priQueue.h"
+#include "DataStructures/priQueue.h"
 
 
 int schmsgid;
