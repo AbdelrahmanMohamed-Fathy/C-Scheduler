@@ -6,44 +6,52 @@ void SJF(int ProcessMessageQueue)
     bool messagedone = false;
     msg sjfmsg;
     priQueue *sjfqueue;
-    PCB *runningprocess;
+    PCB *sjfproc;
+    PCB *currentlyrunningproc=NULL;
     sjfqueue = CreatePriQueue();
-    while (sjfqueue->count!=0||!messagedone){
+    while (sjfqueue->count!=0||!messagedone||!currentlyrunningproc){
         if (msgrcv(ProcessMessageQueue,&sjfmsg,sizeof(struct msg),20,IPC_NOWAIT)==-1)
         {
             messagedone =true;
         }
         while (msgrcv(ProcessMessageQueue,&sjfmsg,sizeof(struct msg),1,IPC_NOWAIT)!=-1)
         {
-        runningprocess = (PCB*)malloc(sizeof(PCB));
-        runningprocess->ID = sjfmsg.data.id;
-        runningprocess->Priority = sjfmsg.data.runningtime;
-        runningprocess->ArrivalTime = sjfmsg.data.arrivaltime;
-        runningprocess->RunningTime=sjfmsg.data.runningtime;
-        runningprocess->RemainingTime=sjfmsg.data.runningtime;
-        runningprocess->StartTime = -1;
-        runningprocess->EndTime = -1;
-        runningprocess->WaitTime = 0;
-        PriEnqueue(sjfqueue,&runningprocess,runningprocess->Priority);
-        pid_t runproc = fork();
-        if (runproc == 0)
-        {
-            execl("bin/process.out","./process.out",NULL);
+            sjfproc = (PCB*)malloc(sizeof(PCB));
+            sjfproc->generationID = sjfmsg.data.id;
+            sjfproc->ID=-1;
+            sjfproc->Priority = sjfmsg.data.runningtime;
+            sjfproc->ArrivalTime = sjfmsg.data.arrivaltime;
+            sjfproc->RunningTime=sjfmsg.data.runningtime;
+            sjfproc->RemainingTime=sjfmsg.data.runningtime;
+            sjfproc->StartTime = -1;
+            sjfproc->EndTime = -1;
+            sjfproc->WaitTime = 0;
+            sjfproc->Running=false;
+            PriEnqueue(sjfqueue,&sjfproc,sjfproc->Priority);
         }
-        else
+        if (!currentlyrunningproc)
         {
-            //waitpid(runningprocess->ID, &statloc, WNOHANG) != -1
+            PriDequeue(sjfqueue,&currentlyrunningproc);
+            pid_t runproc = fork();
+            if (runproc == 0)
+            {
+                execl("bin/process.out","./process.out",NULL);
+            }
+            else
+            {
+                currentlyrunningproc->StartTime = getClk();
+                currentlyrunningproc->Running=true;
+            }
+ 
         }
-
+        else if (waitpid(currentlyrunningproc->ID, &statloc, WNOHANG) != -1)
+        {
+            currentlyrunningproc->Running=false;
+            currentlyrunningproc->EndTime=getClk();
+            ///////////////////here nigga
+            free(currentlyrunningproc);
+            currentlyrunningproc=NULL;
         }
     }
 
-    while (PriDequeue(sjfqueue,&runningprocess))
-    {
-        pid_t runproc = fork();
-        if (runproc == 0)
-        {
-            execl("bin/process.out","./process.out",NULL);
-        }
-    }
 }
