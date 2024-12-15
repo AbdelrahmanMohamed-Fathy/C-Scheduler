@@ -3,6 +3,7 @@
 #include "cpuData.h"
 #include "pcb.h"
 #include "hpf.h"
+#include "RoundRobin.h"
 
 void clearResources(int signum);
 
@@ -27,6 +28,7 @@ int main(int argc, char *argv[])
         HPF(ProcessMessageQueue);
         break;
     case Round_Robin:
+        RR(ProcessMessageQueue, Quantum);
         break;
     case Multiple_Level_Feedback_Loop:
         break;

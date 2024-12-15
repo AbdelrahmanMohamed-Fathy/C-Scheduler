@@ -15,9 +15,9 @@ generate:
 	./bin/test_generator.out
 
 run:
-	./bin/test_generator.out -sch 1 -q 2
-	./bin/process_generator.out &
+	./bin/test_generator.out
+	./bin/process_generator.out processes.txt -sch 3 -q 2
 
 debug:
 	./bin/test_generator.out
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes bin/process_generator.out -sch 1 -q 2 -d
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes bin/process_generator.out processes.txt -sch 3 -q 2 -d

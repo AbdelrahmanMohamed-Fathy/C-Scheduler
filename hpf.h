@@ -21,6 +21,7 @@ void HPF(int ProcessArrivalQueue)
         while (msgrcv(ProcessArrivalQueue, &MsgData, sizeof(msg), 1, IPC_NOWAIT) != -1)
         {
             newProcess = (PCB *)malloc(sizeof(PCB));
+            newProcess->generationID = MsgData.data.id;
             newProcess->ID = -1;
             newProcess->Priority = MsgData.data.priority;
             newProcess->ArrivalTime = MsgData.data.arrivaltime;
@@ -42,6 +43,7 @@ void HPF(int ProcessArrivalQueue)
                 CurrentRunningProcess->EndTime = getClk();
 
                 free(CurrentRunningProcess);
+                continue;
             }
             else if (CurrentRunningProcess->Priority < ReadyQueue->front->priority)
             {
