@@ -14,13 +14,11 @@ int main(int argc, char *argv[])
     // TODO: upon termination release the clock resources.
 
     printf("scheduler terminating normally.\n");
-    msgctl(ProcessMessageQueue, IPC_RMID, NULL);
     destroyClk(false);
 }
 
 void clearResources(int signum)
 {
-    printf("scheduler terminating abnormally.\n");
     msgctl(ProcessMessageQueue, IPC_RMID, NULL);
     exit(1);
 }
