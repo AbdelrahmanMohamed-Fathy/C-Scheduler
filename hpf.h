@@ -43,6 +43,7 @@ void HPF(int ProcessArrivalQueue)
                 CurrentRunningProcess->EndTime = getClk();
 
                 free(CurrentRunningProcess);
+                continue;
             }
             else if (CurrentRunningProcess->Priority < ReadyQueue->front->priority)
             {

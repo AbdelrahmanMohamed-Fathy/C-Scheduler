@@ -15,8 +15,8 @@ generate:
 	./bin/test_generator.out
 
 run:
-	./bin/test_generator.out processes.txt -sch 1 -q 2
-	./bin/process_generator.out &
+	./bin/test_generator.out 
+	./bin/process_generator.out processes.txt -sch 1 -q 2
 
 debug:
 	./bin/test_generator.out
