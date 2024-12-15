@@ -1,9 +1,10 @@
 #pragma once
 #include "../headers.h"
+#include "../pcb.h"
 
 typedef struct priNode
 {
-    processData *processobj;
+    PCB *processobj;
     struct priNode *next;
     int priority;
 } priNode;

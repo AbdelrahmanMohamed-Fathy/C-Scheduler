@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include "pcb.h"
 
 typedef short bool;
 #define true 1
@@ -20,7 +21,7 @@ typedef short bool;
 #define MSGKEY 500
 
 typedef struct processData
-{
+{ 
     int arrivaltime;
     int priority;
     int runningtime;
