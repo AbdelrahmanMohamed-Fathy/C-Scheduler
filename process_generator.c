@@ -80,8 +80,8 @@ int main(int argc, char *argv[])
     pid_t scheduler = fork();
     if (scheduler == 0)
     {
-        char *algo;
-        char *quant;
+        char algo[4];
+        char quant[4];
         sprintf(algo, "%d", SchedulingAlgorithm);
         sprintf(quant, "%d", Quantum);
         execl("bin/scheduler.out", "./scheduler.out", algo, quant, NULL);

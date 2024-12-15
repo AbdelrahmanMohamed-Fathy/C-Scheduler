@@ -9,7 +9,7 @@ void HPF(int ProcessArrivalQueue)
     bool MessagesDone = false;
     int statloc;
 
-    while (ReadyQueue->count != 0 || !MessagesDone)
+    while (ReadyQueue->count != 0 || !MessagesDone || !CurrentRunningProcess)
     {
         // Checking For Terminating Message
         if (msgrcv(ProcessArrivalQueue, NULL, sizeof(msg), 20, IPC_NOWAIT) != -1)
