@@ -11,11 +11,6 @@ Algorithm SchedulingAlgorithm = Shortest_Job_First;
 int Quantum = 2;
 int ProcessMessageQueue = -1;
 
-typedef struct msg
-{
-    long mtype;
-    processData data;
-} msg;
 
 int main(int argc, char *argv[])
 {

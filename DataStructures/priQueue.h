@@ -9,7 +9,7 @@ typedef struct priQueue
     int count;
 } priQueue;
 
-priNode *CreatePriNode(processData *p)
+priNode *CreatePriNode(PCB *p)
 {
     priNode *new_node = (priNode *)malloc(sizeof(priNode));
     if (new_node == NULL)
@@ -18,7 +18,7 @@ priNode *CreatePriNode(processData *p)
         exit(EXIT_FAILURE);
     }
     new_node->processobj = p;
-    new_node->priority = p->priority;
+    new_node->priority = p->Priority;
     new_node->next = NULL;
 
     return new_node;
@@ -42,7 +42,7 @@ bool isPriQueueEmpty(priQueue *q)
     return false;
 }
 
-void PriEnqueue(priQueue *q, processData **process, int priority)
+void PriEnqueue(priQueue *q, PCB **process, int priority)
 {
     priNode *new_node = CreatePriNode(*process);
 
@@ -83,7 +83,7 @@ void PriEnqueue(priQueue *q, processData **process, int priority)
     q->count++;
 }
 
-bool PriDequeue(priQueue *q, processData **data)
+bool PriDequeue(priQueue *q, PCB **data)
 {
     if (!q->front)
     {
