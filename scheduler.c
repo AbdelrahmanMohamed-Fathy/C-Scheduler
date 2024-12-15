@@ -1,15 +1,5 @@
 #include "headers.h"
-#include "priQueue.h"
-
-
-int schmsgid;
-msg schmsg;
-schmsgid = msgget(MSGKEY, IPC_CREAT | 0666);
-if (schmsgid==-1)
-{
-    printf("Error in creating ready queue \n");
-    exit(-1);
-}
+#include "DataStructures/priQueue.h"
 
 void clearResources(int signum);
 
@@ -39,10 +29,7 @@ void SJF()
 {
     priQueue *sjfqueue;
     sjfqueue = CreatePriQueue();
-    while (msgrcv(schmsgid,&schmsg,sizeof(schmsg),0,IPC_NOWAIT)!=-1)
+    while (msgrcv(schmsgid, &schmsg, sizeof(schmsg), 0, IPC_NOWAIT) != -1)
     {
-        
     }
-
-
 }
