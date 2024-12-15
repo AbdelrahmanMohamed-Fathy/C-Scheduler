@@ -27,6 +27,12 @@ typedef struct processData
     int id;
 } processData;
 
+typedef struct msg
+{
+    long mtype;
+    processData data;
+} msg;
+
 typedef enum Algorithm
 {
     Shortest_Job_First = 1,
