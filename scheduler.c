@@ -42,3 +42,4 @@ void clearResources(int signum)
     msgctl(ProcessMessageQueue, IPC_RMID, NULL);
     exit(1);
 }
+
