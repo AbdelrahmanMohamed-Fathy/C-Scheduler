@@ -4,14 +4,14 @@
 
 typedef struct CircQueue
 {
-    Node *front;
-    Node *rear;
+    PCBNode *front;
+    PCBNode *rear;
     int count;
 } CircQueue;
 
-Node *CreatecircNode(processData *p)
+PCBNode *CreatecircNode(PCB *p)
 {
-    Node *new_node = (Node *)malloc(sizeof(Node));
+    PCBNode *new_node = (PCBNode *)malloc(sizeof(PCBNode));
     if (new_node == NULL)
     {
         perror("Memory allocation for new node has failed \n");
@@ -41,9 +41,9 @@ bool isCircQueueEmpty(CircQueue *q)
     return false;
 }
 
-void CircEnqueue(CircQueue *q, processData *process)
+void CircEnqueue(CircQueue *q, PCB *process)
 {
-    Node *new_node = CreatecircNode(process);
+    PCBNode *new_node = CreatecircNode(process);
 
     if (q->rear == NULL)
     {
@@ -60,14 +60,14 @@ void CircEnqueue(CircQueue *q, processData *process)
     q->count++;
 }
 
-bool CircDequeue(CircQueue *q, processData *data)
+bool CircDequeue(CircQueue *q, PCB *data)
 {
     if (!q->front)
     {
         data = NULL;
         return false;
     }
-    Node *current = q->front;
+    PCBNode *current = q->front;
     q->front = q->front->next;
     q->rear->next=q->front;
     data = current->processobj;
