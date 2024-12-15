@@ -15,14 +15,17 @@ int main(int argc, char *argv[])
 {
     signal(SIGINT, clearResources);
 
+    char *FilePath;
     for (int i = 1; i < argc; i++)
     {
         if (strcmp(argv[i], "-d") == 0)
             DebugMode = true;
-        if (strcmp(argv[i], "-sch") == 0)
+        else if (strcmp(argv[i], "-sch") == 0)
             SchedulingAlgorithm = atoi(argv[i + 1]);
-        if (strcmp(argv[i], "-q") == 0)
+        else if (strcmp(argv[i], "-q") == 0)
             Quantum = atoi(argv[i + 1]);
+        else
+            FilePath = argv[i];
     }
 
     FILE *inputfile;
@@ -30,7 +33,7 @@ int main(int argc, char *argv[])
     char fileline[20];
 
     errno = 0;
-    inputfile = fopen("processes.txt", "r");
+    inputfile = fopen(FilePath, "r");
     if (errno != 0)
     {
         fprintf(stderr, "Error opening file. %s\n", strerror(errno));
