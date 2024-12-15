@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     char fileline[20];
 
     errno = 0;
-    inputfile = fopen(FilePath, "r");
+    inputfile = fopen("processes.txt", "r");
     if (errno != 0)
     {
         fprintf(stderr, "Error opening file. %s\n", strerror(errno));
