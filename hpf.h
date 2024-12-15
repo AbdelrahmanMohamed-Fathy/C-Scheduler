@@ -12,13 +12,13 @@ void HPF(int ProcessArrivalQueue)
     while (ReadyQueue->count != 0 || !MessagesDone)
     {
         // Checking For Terminating Message
-        if (msgrcv(ProcessArrivalQueue, NULL, sizeof(msg), 1, IPC_NOWAIT) != -1)
+        if (msgrcv(ProcessArrivalQueue, NULL, sizeof(msg), 20, IPC_NOWAIT) != -1)
             MessagesDone = true;
 
         // Retrieving all Process that are sent
         PCB *newProcess;
         msg MsgData;
-        while (msgrcv(ProcessArrivalQueue, &MsgData, sizeof(msg), 0, IPC_NOWAIT) != -1)
+        while (msgrcv(ProcessArrivalQueue, &MsgData, sizeof(msg), 1, IPC_NOWAIT) != -1)
         {
             newProcess = (PCB *)malloc(sizeof(PCB));
             newProcess->ID = -1;

@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
         while (data->arrivaltime > getClk())
             continue;
 
-        SchedulerMessage.mtype = 0;
+        SchedulerMessage.mtype = 1;
         memcpy(&SchedulerMessage.data, data, sizeof(processData));
         if (msgsnd(ProcessMessageQueue, &SchedulerMessage, sizeof(SchedulerMessage), !IPC_NOWAIT) != -1)
         {
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
         free(data);
     }
     // Terminating message
-    SchedulerMessage.mtype = 1;
+    SchedulerMessage.mtype = 20;
     msgsnd(ProcessMessageQueue, &SchedulerMessage, sizeof(SchedulerMessage), !IPC_NOWAIT);
 
     if (DebugMode)
