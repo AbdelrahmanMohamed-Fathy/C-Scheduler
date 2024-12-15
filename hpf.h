@@ -41,16 +41,18 @@ void HPF(int ProcessArrivalQueue)
             {
                 // handling process termination
                 CurrentRunningProcess->EndTime = getClk();
-
+                //
                 free(CurrentRunningProcess);
+                CurrentRunningProcess = NULL;
                 continue;
             }
             else if (CurrentRunningProcess->Priority < ReadyQueue->front->priority)
             {
                 // handling higher priority switch
-
                 kill(CurrentRunningProcess->ID, SIGSTOP);
                 CurrentRunningProcess->Running = false;
+                PriEnqueue(ReadyQueue, &CurrentRunningProcess, CurrentRunningProcess->Priority);
+                CurrentRunningProcess = NULL;
             }
         }
         else
@@ -73,6 +75,7 @@ void HPF(int ProcessArrivalQueue)
                 {
                     if (CurrentRunningProcess->StartTime == -1)
                         CurrentRunningProcess->StartTime = getClk();
+                    CurrentRunningProcess->Running = true;
                 }
             }
             else
