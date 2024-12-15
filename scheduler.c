@@ -2,7 +2,6 @@
 #include "DataStructures/priQueue.h"
 #include "pcb.h"
 
-
 void clearResources(int signum);
 
 int ProcessMessageQueue;
@@ -18,13 +17,12 @@ int main(int argc, char *argv[])
     // TODO: upon termination release the clock resources.
 
     printf("scheduler terminating normally.\n");
-    msgctl(ProcessMessageQueue, IPC_RMID, NULL);
     destroyClk(false);
+    clearResources(0);
 }
 
 void clearResources(int signum)
 {
-    printf("scheduler terminating abnormally.\n");
     msgctl(ProcessMessageQueue, IPC_RMID, NULL);
     exit(1);
 }

@@ -96,21 +96,23 @@ int main(int argc, char *argv[])
     {
         if (DebugMode)
             printf("retrieved data with id: %d\n", data->id);
+
         while (data->arrivaltime > getClk())
             continue;
-        msg SchedulerMessage;
-        SchedulerMessage.mtype = 0;
 
+        msg SchedulerMessage;
+        SchedulerMessage.mtype = SchedulingAlgorithm;
         memcpy(&SchedulerMessage.data, data, sizeof(processData));
-        if (msgsnd(ProcessMessageQueue, &SchedulerMessage, sizeof(struct msg), IPC_NOWAIT) > 0)
+        if (msgsnd(ProcessMessageQueue, &SchedulerMessage, sizeof(SchedulerMessage), !IPC_NOWAIT) != -1)
         {
             if (DebugMode)
-                printf("Message sent succesfully for process with id: %d\n", data->id);
+                printf("Message sent succesfully for process with id: %d\n", SchedulerMessage.data.id);
         }
         free(data);
     }
-    // 7. Clear clock resources if (DebugMode)
-    printf("generator terminating normally.\n");
+    // 7. Clear clock resources
+    if (DebugMode)
+        printf("generator terminating normally.\n");
     destroyClk(true);
 }
 
