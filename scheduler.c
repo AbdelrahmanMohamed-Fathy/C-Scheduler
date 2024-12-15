@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     switch (SchedulingAlgorithm)
     {
     case Shortest_Job_First:
-        SJF();
+        // SJF();
         break;
     case Premptive_Highest_Priority_First:
         HPF(ProcessMessageQueue);
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     }
 
     printf("scheduler terminating normally.\n");
-    destroyClk(false);
+    destroyClk(true);
     clearResources(0);
 }
 

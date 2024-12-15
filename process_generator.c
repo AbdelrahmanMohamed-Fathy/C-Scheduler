@@ -123,7 +123,8 @@ int main(int argc, char *argv[])
 
     if (DebugMode)
         printf("generator terminating normally.\n");
-    destroyClk(true);
+    destroyClk(false);
+    clearResources(0);
 }
 
 void clearResources(int signum)
