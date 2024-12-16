@@ -1,9 +1,10 @@
 #include "DataStructures/priQueue.h"
 #include "headers.h"
 #include "cpuData.h"
+#include "SJF.h"
 #include "HPF.h"
 #include "RoundRobin.h"
-#include "meow.h"
+#include "MLFQ.h"
 
 void clearResources(int signum);
 
@@ -25,7 +26,7 @@ int main(int argc, char *argv[])
     {
     case Shortest_Job_First:
         fprintf(OutputFile, "#SJF:\n");
-        // SJF();
+        SJF(OutputFile,ProcessMessageQueue);
         break;
     case Premptive_Highest_Priority_First:
         fprintf(OutputFile, "#HPF:\n");

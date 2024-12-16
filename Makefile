@@ -14,10 +14,34 @@ all: clean build
 generate: 
 	./bin/test_generator.out
 
-run:
+runSJF:
+	./bin/test_generator.out
+	./bin/process_generator.out processes.txt -sch 1 -q 2
+
+runHPF:
 	./bin/test_generator.out
 	./bin/process_generator.out processes.txt -sch 2 -q 2
 
-debug:
+runRR:
+	./bin/test_generator.out
+	./bin/process_generator.out processes.txt -sch 3 -q 2
+
+runMLFQ:
+	./bin/test_generator.out
+	./bin/process_generator.out processes.txt -sch 4 -q 2
+
+debugSJF:
+	./bin/test_generator.out
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes bin/process_generator.out processes.txt -sch 1 -q 2 -d
+
+debugHPF:
 	./bin/test_generator.out
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes bin/process_generator.out processes.txt -sch 2 -q 2 -d
+
+debugRR:
+	./bin/test_generator.out
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes bin/process_generator.out processes.txt -sch 3 -q 2 -d
+
+debugMLFQ:
+	./bin/test_generator.out
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes bin/process_generator.out processes.txt -sch 4 -q 2 -d
