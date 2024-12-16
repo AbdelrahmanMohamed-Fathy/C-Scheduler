@@ -1,6 +1,6 @@
 #pragma once
 #include "../headers.h"
-#include "../pcb.h"
+#include "../PCB.h"
 
 typedef struct Node
 {
@@ -10,6 +10,6 @@ typedef struct Node
 
 typedef struct PCBNode
 {
-    PCB* processobj;
+    PCB *processobj;
     struct PCBNode *next;
 } PCBNode;

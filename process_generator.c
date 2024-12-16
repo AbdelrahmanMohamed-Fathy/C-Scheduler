@@ -10,7 +10,7 @@ bool DebugMode = false;
 Algorithm SchedulingAlgorithm = Shortest_Job_First;
 int Quantum = 2;
 int ProcessMessageQueue = -1;
-
+pid_t scheduler = -1;
 int main(int argc, char *argv[])
 {
     signal(SIGINT, clearResources);
@@ -139,6 +139,9 @@ void clearResources(int signum)
     {
         free(data);
     }
-    free(proccesqueue);
+    if (scheduler == -1)
+        destroyClk(true);
+    if (proccesqueue)
+        free(proccesqueue);
     exit(1);
 }

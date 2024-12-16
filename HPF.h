@@ -41,16 +41,18 @@ void HPF(int ProcessArrivalQueue)
             {
                 // handling process termination
                 CurrentRunningProcess->EndTime = getClk();
-
+                //
                 free(CurrentRunningProcess);
+                CurrentRunningProcess = NULL;
                 continue;
             }
             else if (CurrentRunningProcess->Priority < ReadyQueue->front->priority)
             {
                 // handling higher priority switch
-
                 kill(CurrentRunningProcess->ID, SIGSTOP);
                 CurrentRunningProcess->Running = false;
+                PriEnqueue(ReadyQueue, &CurrentRunningProcess, CurrentRunningProcess->Priority);
+                CurrentRunningProcess = NULL;
             }
         }
         else
@@ -67,12 +69,15 @@ void HPF(int ProcessArrivalQueue)
                 CurrentRunningProcess->ID = fork();
                 if (CurrentRunningProcess->ID == 0)
                 {
-                    execl("bin/process.out", "./process.out", NULL);
+                    char runtime[4];
+                    sprintf(runtime, "%d", CurrentRunningProcess->RunningTime);
+                    execl("bin/process.out", "./process.out", runtime, NULL);
                 }
                 else
                 {
                     if (CurrentRunningProcess->StartTime == -1)
                         CurrentRunningProcess->StartTime = getClk();
+                    CurrentRunningProcess->Running = true;
                 }
             }
             else

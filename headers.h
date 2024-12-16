@@ -20,7 +20,7 @@ typedef short bool;
 #define MSGKEY 500
 
 typedef struct processData
-{ 
+{
     int arrivaltime;
     int priority;
     int runningtime;
