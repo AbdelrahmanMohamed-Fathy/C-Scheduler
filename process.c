@@ -23,9 +23,8 @@ int main(int agrc, char *argv[])
     time = getClk();
     while (remainingtime > 0)
     {
-        prevTime = remainingtime;
         while (time == getClk())
-            continue;
+            prevTime = remainingtime;
         remainingtime--;
         time = getClk();
     }
