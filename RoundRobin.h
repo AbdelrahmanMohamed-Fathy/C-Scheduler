@@ -2,7 +2,7 @@
 #include "DataStructures/CircularQueue.h"
 #include "PCB.h"
 
-void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum)
+void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum )
 {
     int lastquantum = 0;
     int wait_time;
@@ -12,7 +12,7 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum)
     CircQueue *RRqueue = CreatecircQueue();
     PCB *runningprocess = NULL;
     PCB *newProcess;
-    while (!isCircQueueEmpty(RRqueue) || !messagesdone)
+    while (!isCircQueueEmpty(RRqueue) || !messagesdone || runningprocess != NULL)
     {
         lastquantum = getClk();
         if (msgrcv(ProcessMessageQueue, &RRmsg, sizeof(msg), 20, IPC_NOWAIT) != -1)

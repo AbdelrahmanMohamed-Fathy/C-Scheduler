@@ -19,10 +19,10 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue)
     PCB *runningprocess = NULL;
     PCB *newProcess;
 
-    while (!isCircQueueEmpty(RRqueue) || !messagesdone)
+    while (!isCircQueueEmpty(RRqueue) || !messagesdone || runningprocess != NULL) 
     {
         //receive new processes and add to the highest priority queue (Level 0)
-        while (msgrcv(ProcessMessageQueue, &MLFQmsg, sizeof(msg), 1, IPC_NOWAIT) != -1)
+        if(msgrcv(ProcessMessageQueue, &MLFQmsg, sizeof(msg), 1, IPC_NOWAIT) != -1)
         {
             newProcess = (PCB *)malloc(sizeof(PCB));
             newProcess->generationID = MLFQmsg.data.id;
