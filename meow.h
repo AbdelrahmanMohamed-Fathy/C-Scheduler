@@ -2,7 +2,7 @@
 #include "DataStructures/CircularQueue.h"
 #include "PCB.h"
 
-#define NUM_QUEUES 3  // Number of priority levels
+#define NUM_QUEUES 3                       // Number of priority levels
 int queue_quantum[NUM_QUEUES] = {2, 4, 8}; // Quantum for each level
 
 void MLFQ(FILE *OutputFile, int ProcessMessageQueue)
@@ -19,15 +19,15 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue)
     PCB *runningprocess = NULL;
     PCB *newProcess;
 
-    while (!isCircQueueEmpty(RRqueue) || !messagesdone)
+    while (!isCircQueueEmpty(*queues) || !messagesdone)
     {
-        //receive new processes and add to the highest priority queue (Level 0)
+        // receive new processes and add to the highest priority queue (Level 0)
         while (msgrcv(ProcessMessageQueue, &MLFQmsg, sizeof(msg), 1, IPC_NOWAIT) != -1)
         {
             newProcess = (PCB *)malloc(sizeof(PCB));
             newProcess->generationID = MLFQmsg.data.id;
-            newProcess->ID = -1; 
-            newProcess->Priority = 0; //start in highest priority queue
+            newProcess->ID = -1;
+            newProcess->Priority = 0; // start in highest priority queue
             newProcess->ArrivalTime = MLFQmsg.data.arrivaltime;
             newProcess->RunningTime = MLFQmsg.data.runningtime;
             newProcess->RemainingTime = MLFQmsg.data.runningtime;
@@ -39,7 +39,7 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue)
             fprintf(OutputFile, "process with id=%d arrived at clock=%d and running time=%d \n", newProcess->generationID, newProcess->ArrivalTime, newProcess->RunningTime);
         }
 
-        //find the highest-priority non-empty queue
+        // find the highest-priority non-empty queue
         int currentQueue = -1;
         for (int i = 0; i < NUM_QUEUES; i++)
         {
@@ -50,18 +50,19 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue)
             }
         }
 
-        if (currentQueue == -1) //no processes left
+        if (currentQueue == -1) // no processes left
         {
-            if (messagesdone) break; //exit if no new messages
+            if (messagesdone)
+                break; // exit if no new messages
             continue;
         }
 
-        //dequeue process from the current queue
+        // dequeue process from the current queue
         CircDequeue(queues[currentQueue], &runningprocess);
 
         if (runningprocess->StartTime == -1)
         {
-            //first time running the process
+            // first time running the process
             runningprocess->ID = fork();
             if (runningprocess->ID == 0)
             {
@@ -79,14 +80,15 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue)
             runningprocess->StartTime = getClk();
         }
 
-        //running the processes algorithm same as rr
+        // running the processes algorithm same as rr
         int quantum = queue_quantum[currentQueue];
         if (runningprocess->RemainingTime <= quantum)
         {
-            //process finishes within its quantum
+            // process finishes within its quantum
             kill(runningprocess->ID, SIGCONT);
             time = getClk();
-            while (getClk() < (time + runningprocess->RemainingTime));
+            while (getClk() < (time + runningprocess->RemainingTime))
+                ;
             runningprocess->RemainingTime = 0;
             runningprocess->EndTime = getClk();
             fprintf(OutputFile, "process with id=%d and runningtime=%d finished at %d \n", runningprocess->generationID, runningprocess->RunningTime, runningprocess->EndTime);
@@ -95,15 +97,16 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue)
         }
         else
         {
-            //process exceeds its quantum
+            // process exceeds its quantum
             kill(runningprocess->ID, SIGCONT);
             time = getClk();
-            while (getClk() < (time + quantum));
+            while (getClk() < (time + quantum))
+                ;
             runningprocess->RemainingTime -= quantum;
             kill(runningprocess->ID, SIGSTOP);
             fprintf(OutputFile, "process with id=%d remaining time=%d clock=%d \n", runningprocess->generationID, runningprocess->RemainingTime, getClk());
 
-            //demote the process to a lower-priority queue
+            // demote the process to a lower-priority queue
             int nextQueue = currentQueue + 1;
             if (nextQueue < NUM_QUEUES)
             {
@@ -111,7 +114,7 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue)
             }
             else
             {
-                //lowest-priority queue (re-enqueue in the same queue)
+                // lowest-priority queue (re-enqueue in the same queue)
                 CircEnqueue(queues[currentQueue], &runningprocess);
             }
         }
