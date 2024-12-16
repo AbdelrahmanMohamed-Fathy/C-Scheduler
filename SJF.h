@@ -10,7 +10,7 @@ void SJF(int ProcessMessageQueue)
     PCB *sjfproc;
     PCB *currentlyrunningproc = NULL;
     sjfqueue = CreatePriQueue();
-    while (sjfqueue->count != 0 || !messagedone || !currentlyrunningproc)
+    while (sjfqueue->count > 0 || !messagedone || currentlyrunningproc)
     {
         if (msgrcv(ProcessMessageQueue, &sjfmsg, sizeof(struct msg), 20, IPC_NOWAIT) == -1)
         {
@@ -31,7 +31,7 @@ void SJF(int ProcessMessageQueue)
             sjfproc->Running = false;
             PriEnqueue(sjfqueue, &sjfproc, sjfproc->Priority);
         }
-        if (!currentlyrunningproc)
+        if (currentlyrunningproc)
         {
             PriDequeue(sjfqueue, &currentlyrunningproc);
             pid_t runproc = fork();
@@ -47,7 +47,7 @@ void SJF(int ProcessMessageQueue)
                 currentlyrunningproc->Running = true;
             }
         }
-        else if (waitpid(currentlyrunningproc->ID, &statloc, WNOHANG) != -1)
+        else if (waitpid(currentlyrunningproc->ID, &statloc, 0) != -1)
         {
             currentlyrunningproc->Running = false;
             currentlyrunningproc->EndTime = getClk();
