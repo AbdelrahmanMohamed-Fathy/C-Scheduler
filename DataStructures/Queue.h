@@ -22,6 +22,7 @@ Node *CreateNode(processData *p)
     return new_node;
 }
 
+
 Queue *CreateQueue()
 {
     Queue *q = (Queue *)malloc(sizeof(Queue));

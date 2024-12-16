@@ -21,7 +21,6 @@ int main(int argc, char *argv[])
 
 
     FILE * OutputFile = fopen("scheduler.log", "w");
-
     switch (SchedulingAlgorithm)
     {
     case Shortest_Job_First:
@@ -34,7 +33,7 @@ int main(int argc, char *argv[])
         break;
     case Round_Robin:
         fprintf(OutputFile,"#RR:\n");
-        RR(ProcessMessageQueue, Quantum);
+        RR(OutputFile,ProcessMessageQueue, Quantum);
         break;
     case Multiple_Level_Feedback_Loop:
         fprintf(OutputFile,"#MLFP:\n");

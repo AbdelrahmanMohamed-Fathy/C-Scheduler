@@ -7,7 +7,7 @@ void clearResources(int);
 
 Queue *proccesqueue;
 bool DebugMode = false;
-Algorithm SchedulingAlgorithm = Shortest_Job_First;
+Algorithm SchedulingAlgorithm = Round_Robin;
 int Quantum = 2;
 int ProcessMessageQueue = -1;
 pid_t scheduler = -1;
