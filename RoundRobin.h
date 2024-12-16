@@ -5,7 +5,7 @@
 void RR(int ProcessMessageQueue, int quantum)
 {
     int lastquantum = 0;
-    int messagesdone=0;
+    bool messagesdone=false;
     int time;
     msg RRmsg;
     CircQueue *RRqueue = CreatecircQueue();
@@ -49,33 +49,84 @@ void RR(int ProcessMessageQueue, int quantum)
                 runningprocess->StartTime = getClk();
                 runningprocess->Running = true;
             }
-
+            
             if (runningprocess->RemainingTime <= quantum)
             {
                 //if the process will finish in the current quantum
+                kill(runningprocess->ID, SIGCONT);
                 time = getClk();
                 while (getClk() < (time + runningprocess->RemainingTime));
                 runningprocess->RunningTime += runningprocess->RemainingTime;
                 runningprocess->RemainingTime = 0;
                 runningprocess->Running = false;
                 runningprocess->EndTime = getClk();
-                free(runningprocess);
-                runningprocess = NULL;
                 printf("process with id=%d and runningtime=%d finished at %d", runningprocess->ID, runningprocess->RunningTime, runningprocess->EndTime);
+                
             }
             else
             {
-                //if the process will not finish in the current quantum
+                //if the process will not finish in the current quantum                
+                kill(runningprocess->ID, SIGCONT);
                 time =getClk();
                 while (getClk() < (time + quantum));
                 runningprocess->RemainingTime -= quantum;
                 runningprocess->RunningTime += quantum;
                 kill(runningprocess->ID, SIGSTOP);
                 CircEnqueue(RRqueue, runningprocess);
-                runningprocess->Running = false;
-                runningprocess = NULL;
                 printf("process with id=%d remaining time=%d clock=%d ", runningprocess->ID, runningprocess->RemainingTime, getClk());
+                
             }
+            while(RRqueue->count==0){
+                if (runningprocess->RemainingTime <= quantum)
+                {
+                    //if the process will finish in the current quantum
+                    kill(runningprocess->ID, SIGCONT);
+                    time = getClk();
+                    while (getClk() < (time + runningprocess->RemainingTime));
+                    runningprocess->RunningTime += runningprocess->RemainingTime;
+                    runningprocess->RemainingTime = 0;
+                    runningprocess->Running = false;
+                    kill(runningprocess->ID, SIGSTOP);
+                    runningprocess->EndTime = getClk();
+                    printf("process with id=%d and runningtime=%d finished at %d", runningprocess->ID, runningprocess->RunningTime, runningprocess->EndTime);
+                    
+                }
+                else
+                {
+                    //if the process will not finish in the current quantum                
+                    kill(runningprocess->ID, SIGCONT);
+                    time =getClk();
+                    while (getClk() < (time + quantum));
+                    runningprocess->RemainingTime -= quantum;
+                    runningprocess->RunningTime += quantum;
+                    CircEnqueue(RRqueue, runningprocess);
+                    printf("process with id=%d remaining time=%d clock=%d ", runningprocess->ID, runningprocess->RemainingTime, getClk());
+                    
+                }
+
+
+                if (msgrcv(ProcessMessageQueue, &RRmsg, sizeof(msg), 20, IPC_NOWAIT) != -1)
+                {
+                    messagesdone = true;
+                }
+                else if (msgrcv(ProcessMessageQueue, &RRmsg, sizeof(msg), 1, IPC_NOWAIT) != -1)
+                {
+                    newProcess = (PCB *)malloc(sizeof(PCB));
+                    newProcess->generationID = RRmsg.data.id;
+                    newProcess->ID = -1; 
+                    newProcess->Priority = RRmsg.data.priority;
+                    newProcess->ArrivalTime = RRmsg.data.arrivaltime;
+                    newProcess->RunningTime = RRmsg.data.runningtime;
+                    newProcess->RemainingTime = RRmsg.data.runningtime;
+                    newProcess->StartTime = -1;
+                    newProcess->EndTime = -1;
+                    newProcess->WaitTime = 0;
+                    newProcess->Running = false;
+                    CircEnqueue(RRqueue, newProcess);
+                }
+            }
+            free(runningprocess);
+            runningprocess = NULL;
         }
     }
     printf("RR done");
