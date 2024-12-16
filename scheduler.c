@@ -18,6 +18,7 @@ int main(int argc, char *argv[])
     Algorithm SchedulingAlgorithm = atoi(argv[1]);
     int Quantum = atoi(argv[2]);
     ProcessMessageQueue = msgget(MSGKEY, IPC_CREAT | 0666);
+    cpuData PreformanceData;
 
     switch (SchedulingAlgorithm)
     {
