@@ -14,14 +14,20 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum)
     }
 
     int time;
+    int quantumRemainingTime = 0;
     int runningProcessStart;
     bool messagesdone = false;
     msg MLFQmsg;
     PCB *runningProcess = NULL;
     PCB *newProcess;
 
-    while (!isCircQueueEmpty(*queues) || !messagesdone)
+    while (!isCircQueueEmpty(*queues) || !messagesdone || runningProcess)
     {
+        if (msgrcv(ProcessMessageQueue, &MLFQmsg, sizeof(msg), 20, IPC_NOWAIT) != -1)
+        {
+            messagesdone = true;
+            fprintf(OutputFile, "#Recieved Termination message.\n");
+        }
         // receive new processes and add to the highest priority queue (Level 0)
         while (msgrcv(ProcessMessageQueue, &MLFQmsg, sizeof(msg), 1, IPC_NOWAIT) != -1)
         {
@@ -37,7 +43,7 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum)
             newProcess->WaitTime = 0;
             newProcess->Running = false;
             CircEnqueue(queues[0], &newProcess);
-            fprintf(OutputFile, "process with id=%d arrived at clock=%d and running time=%d \n", newProcess->generationID, newProcess->ArrivalTime, newProcess->RunningTime);
+            fprintf(OutputFile, "#process with id=%d arrived at clock=%d and running time=%d \n", newProcess->generationID, newProcess->ArrivalTime, newProcess->RunningTime);
         }
 
         if (!runningProcess) //I'm not working on a process at the moment, have to dequeue a new one
@@ -84,17 +90,77 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum)
 
         else //I have a message I'm working on
         {
-            if (runningProcess->RemainingTime < quantum)
+            if (quantumRemainingTime != 0) //Cashing out on a previous unfinished quantum
             {
-                
+                if (runningProcess->RemainingTime <= quantumRemainingTime)
+            {
+                quantumRemainingTime = quantumRemainingTime - runningProcess->RemainingTime;
+                if (waitpid(runningProcess->ID, NULL, !WNOHANG) == runningProcess->ID) //Since I expect it to happen, I wait for process termination
+                {
+                    runningProcess->EndTime = getClk();
+                    runningProcess->RemainingTime -= quantum + quantumRemainingTime;
+                    fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d\n", runningProcess->EndTime, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
+                    free(runningProcess);
+                    runningProcess = NULL;
+                }
             }
-            else if (runningProcess->RemainingTime = quantum)
+            else if (runningProcess->RemainingTime > quantumRemainingTime)
             {
-
+                quantumRemainingTime = 0;
+                sleep(quantumRemainingTime);
+                kill(runningProcess->ID, SIGTSTP);
+                runningProcess->RemainingTime -= quantumRemainingTime;
+                runningProcess->Running = false;
+                fprintf(OutputFile, "At time %d process %d stopped arr %d total %d remain %d wait %d\n", getClk(), runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
+                if (runningProcess->Priority < 11)
+                {
+                    runningProcess->Priority++;
+                }
+                CircEnqueue(queues[runningProcess->Priority], &runningProcess);
+                runningProcess = NULL;
             }
-            else if (runningProcess->RemainingTime > quantum)
+            }
+            else
             {
-
+                PCB *processCheck; 
+                for (int i = 0; i < 11; i++)
+                {
+                    if (CircDequeue(queues[i], &processCheck))
+                    {
+                        processCheck->Priority = i;
+                        break;
+                    }
+                }
+                if (processCheck->Priority < runningProcess->Priority) //Checks if I recieved a higher priority message between quantums
+                {
+                    runningProcess = processCheck;
+                }
+                if (runningProcess->RemainingTime <= quantum)
+                {
+                    quantumRemainingTime = quantum - runningProcess->RemainingTime;
+                    if (waitpid(runningProcess->ID, NULL, !WNOHANG) == runningProcess->ID) //Since I expect it to happen, I wait for process termination
+                    {
+                        runningProcess->EndTime = getClk();
+                        runningProcess->RemainingTime -= quantum + quantumRemainingTime;
+                        fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d\n", runningProcess->EndTime, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
+                        free(runningProcess);
+                        runningProcess = NULL;
+                    }
+                }
+                else if (runningProcess->RemainingTime > quantum)
+                {
+                    sleep(quantum);
+                    kill(runningProcess->ID, SIGTSTP);
+                    runningProcess->RemainingTime -= quantum;
+                    runningProcess->Running = false;
+                    fprintf(OutputFile, "At time %d process %d stopped arr %d total %d remain %d wait %d\n", getClk(), runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
+                    if (runningProcess->Priority < 11)
+                    {
+                        runningProcess->Priority++;
+                    }
+                    CircEnqueue(queues[runningProcess->Priority], &runningProcess);
+                    runningProcess = NULL;
+                }
             }
         }
     }
