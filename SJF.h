@@ -1,39 +1,41 @@
 #include "headers.h"
 #include "DataStructures/priQueue.h"
 
-void SJF(int ProcessMessageQueue)
+void SJF(FILE *OutputeFile,int ProcessMessageQueue)
 {
     int statloc;
+    int CurrentRunningProcessStart;
     bool messagedone = false;
-    msg sjfmsg;
-    priQueue *sjfqueue;
-    PCB *sjfproc;
+    msg MSGDATA;
+    priQueue *SJFqueue;
+    PCB *newprocess;
     PCB *currentlyrunningproc = NULL;
-    sjfqueue = CreatePriQueue();
-    while (sjfqueue->count > 0 || !messagedone || currentlyrunningproc)
+    SJFqueue = CreatePriQueue();
+    while (SJFqueue->count > 0 || !messagedone || currentlyrunningproc)
     {
-        if (msgrcv(ProcessMessageQueue, &sjfmsg, sizeof(struct msg), 20, IPC_NOWAIT) == -1)
+        if (msgrcv(ProcessMessageQueue, &MSGDATA, sizeof(struct msg), 20, IPC_NOWAIT) == -1)
         {
             messagedone = true;
         }
-        while (msgrcv(ProcessMessageQueue, &sjfmsg, sizeof(struct msg), 1, IPC_NOWAIT) != -1)
+        while (msgrcv(ProcessMessageQueue, &MSGDATA, sizeof(struct msg), 1, IPC_NOWAIT) != -1)
         {
-            sjfproc = (PCB *)malloc(sizeof(PCB));
-            sjfproc->generationID = sjfmsg.data.id;
-            sjfproc->ID = -1;
-            sjfproc->Priority = sjfmsg.data.runningtime;
-            sjfproc->ArrivalTime = sjfmsg.data.arrivaltime;
-            sjfproc->RunningTime = sjfmsg.data.runningtime;
-            sjfproc->RemainingTime = sjfmsg.data.runningtime;
-            sjfproc->StartTime = -1;
-            sjfproc->EndTime = -1;
-            sjfproc->WaitTime = 0;
-            sjfproc->Running = false;
-            PriEnqueue(sjfqueue, &sjfproc, sjfproc->Priority);
+            fprintf(OutputeFile, "#process: %d arrived at %d\n", MSGDATA.data.id, MSGDATA.data.arrivaltime);
+            newprocess = (PCB *)malloc(sizeof(PCB));
+            newprocess->generationID = MSGDATA.data.id;
+            newprocess->ID = -1;
+            newprocess->Priority = MSGDATA.data.runningtime;
+            newprocess->ArrivalTime = MSGDATA.data.arrivaltime;
+            newprocess->RunningTime = MSGDATA.data.runningtime;
+            newprocess->RemainingTime = MSGDATA.data.runningtime;
+            newprocess->StartTime = -1;
+            newprocess->EndTime = -1;
+            newprocess->WaitTime = 0;
+            newprocess->Running = false;
+            PriEnqueue(SJFqueue, &newprocess, newprocess->Priority);
         }
         if (currentlyrunningproc)
         {
-            PriDequeue(sjfqueue, &currentlyrunningproc);
+            PriDequeue(SJFqueue, &currentlyrunningproc);
             pid_t runproc = fork();
             if (runproc == 0)
             {
@@ -43,15 +45,19 @@ void SJF(int ProcessMessageQueue)
             }
             else
             {
-                currentlyrunningproc->StartTime = getClk();
-                currentlyrunningproc->Running = true;
+
+                if (currentlyrunningproc->StartTime == -1)
+                    currentlyrunningproc->StartTime = getClk();
+                    CurrentRunningProcessStart = currentlyrunningproc->StartTime;
+                    currentlyrunningproc->Running = true;
+                    fprintf(OutputeFile, "At time %d process %d started arr %d total %d remain %d wait %d\n", currentlyrunningproc->StartTime, currentlyrunningproc->generationID, currentlyrunningproc->ArrivalTime, currentlyrunningproc->RunningTime, currentlyrunningproc->RemainingTime, currentlyrunningproc->WaitTime);
             }
         }
         else if (waitpid(currentlyrunningproc->ID, &statloc, 0) != -1)
         {
             currentlyrunningproc->Running = false;
             currentlyrunningproc->EndTime = getClk();
-            ///////////////////here nigga
+            currentlyrunningproc->RemainingTime=0;
             free(currentlyrunningproc);
             currentlyrunningproc = NULL;
         }
