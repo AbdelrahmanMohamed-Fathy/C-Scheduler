@@ -37,7 +37,9 @@ void SJF(int ProcessMessageQueue)
             pid_t runproc = fork();
             if (runproc == 0)
             {
-                execl("bin/process.out", "./process.out", NULL);
+                char runtime[4];
+                sprintf(runtime, "%d", currentlyrunningproc->RunningTime);
+                execl("bin/process.out", "./process.out", runtime, NULL);
             }
             else
             {
