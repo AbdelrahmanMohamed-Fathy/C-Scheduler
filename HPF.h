@@ -59,7 +59,7 @@ void HPF(FILE *OutputeFile, int ProcessArrivalQueue)
             else if (ReadyQueue->front && CurrentRunningProcess->Priority > ReadyQueue->front->priority)
             {
                 // handling higher priority switch
-                kill(CurrentRunningProcess->ID, SIGSTOP);
+                kill(CurrentRunningProcess->ID, SIGTSTP);
                 int now = getClk();
                 CurrentRunningProcess->RemainingTime -= (now - CurrentRunningProcessStart);
                 CurrentRunningProcess->Running = false;
@@ -94,6 +94,7 @@ void HPF(FILE *OutputeFile, int ProcessArrivalQueue)
                         CurrentRunningProcess->StartTime = getClk();
                     CurrentRunningProcessStart = CurrentRunningProcess->StartTime;
                     CurrentRunningProcess->Running = true;
+                    CurrentRunningProcess->WaitTime = CurrentRunningProcess->StartTime - CurrentRunningProcess->ArrivalTime;
                     fprintf(OutputeFile, "At time %d process %d started arr %d total %d remain %d wait %d\n", CurrentRunningProcess->StartTime, CurrentRunningProcess->generationID, CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
                     // printf("At time %d process %d started arr %d total %d remain %d wait %d\n",CurrentRunningProcess->StartTime,CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime,CurrentRunningProcess->RunningTime,CurrentRunningProcess->RemainingTime,CurrentRunningProcess->WaitTime);
                     continue;
@@ -103,6 +104,7 @@ void HPF(FILE *OutputeFile, int ProcessArrivalQueue)
             {
                 // handling process that already started but didnt finish
                 CurrentRunningProcessStart = getClk();
+                CurrentRunningProcess->WaitTime = CurrentRunningProcess->StartTime - CurrentRunningProcess->ArrivalTime + CurrentRunningProcess->RunningTime-CurrentRunningProcess->RemainingTime;
                 kill(CurrentRunningProcess->ID, SIGCONT);
                 CurrentRunningProcess->Running = true;
                 fprintf(OutputeFile, "At time %d process %d resumed arr %d total %d remain %d wait %d\n", CurrentRunningProcessStart, CurrentRunningProcess->generationID, CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
