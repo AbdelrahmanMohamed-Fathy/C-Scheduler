@@ -2,7 +2,7 @@
 #include "headers.h"
 #include "DataStructures/priQueue.h"
 
-void HPF(FILE* OutputeFile,int ProcessArrivalQueue)
+void HPF(FILE *OutputeFile, int ProcessArrivalQueue)
 {
     PCB *CurrentRunningProcess = NULL;
     priQueue *ReadyQueue = CreatePriQueue();
@@ -17,16 +17,15 @@ void HPF(FILE* OutputeFile,int ProcessArrivalQueue)
         if (msgrcv(ProcessArrivalQueue, &MsgData, sizeof(msg), 20, IPC_NOWAIT) != -1)
         {
             MessagesDone = true;
-            fprintf(OutputeFile,"#Recieved Termination message.\n");
+            fprintf(OutputeFile, "#Recieved Termination message.\n");
         }
-            
 
         // Retrieving all Process that are sent
         PCB *newProcess = NULL;
         while (msgrcv(ProcessArrivalQueue, &MsgData, sizeof(msg), 1, IPC_NOWAIT) != -1)
         {
-            fprintf(OutputeFile,"#process: %d arrived at %d\n",MsgData.data.id,MsgData.data.arrivaltime);
-            //printf("#process: %d arrived at %d\n",MsgData.data.id,MsgData.data.arrivaltime);
+            fprintf(OutputeFile, "#process: %d arrived at %d\n", MsgData.data.id, MsgData.data.arrivaltime);
+            // printf("#process: %d arrived at %d\n",MsgData.data.id,MsgData.data.arrivaltime);
             newProcess = (PCB *)malloc(sizeof(PCB));
             newProcess->generationID = MsgData.data.id;
             newProcess->ID = -1;
@@ -39,6 +38,7 @@ void HPF(FILE* OutputeFile,int ProcessArrivalQueue)
             newProcess->WaitTime = 0;
             newProcess->Running = false;
             PriEnqueue(ReadyQueue, &newProcess, newProcess->Priority);
+            fprintf(OutputeFile, "#ReadyQueue has %d processes\n", ReadyQueue->count);
         }
 
         if (CurrentRunningProcess)
@@ -48,10 +48,10 @@ void HPF(FILE* OutputeFile,int ProcessArrivalQueue)
             {
                 // handling process termination
                 CurrentRunningProcess->EndTime = getClk();
-                CurrentRunningProcess->RemainingTime = 0;
+                CurrentRunningProcess->RemainingTime -= (CurrentRunningProcess->EndTime - CurrentRunningProcessStart);
                 //
-                fprintf(OutputeFile, "At time %d process %d finished arr %d total %d remain %d wait %d\n", CurrentRunningProcess->EndTime, CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
-                //printf("At time %d process %d finished arr %d total %d remain %d wait %d\n", CurrentRunningProcess->EndTime, CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
+                fprintf(OutputeFile, "At time %d process %d finished arr %d total %d remain %d wait %d\n", CurrentRunningProcess->EndTime, CurrentRunningProcess->generationID, CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
+                // printf("At time %d process %d finished arr %d total %d remain %d wait %d\n", CurrentRunningProcess->EndTime, CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
                 free(CurrentRunningProcess);
                 CurrentRunningProcess = NULL;
                 continue;
@@ -59,12 +59,12 @@ void HPF(FILE* OutputeFile,int ProcessArrivalQueue)
             else if (ReadyQueue->front && CurrentRunningProcess->Priority > ReadyQueue->front->priority)
             {
                 // handling higher priority switch
-                int now = getClk();
                 kill(CurrentRunningProcess->ID, SIGSTOP);
-                CurrentRunningProcess->RemainingTime -= (now-CurrentRunningProcessStart);
+                int now = getClk();
+                CurrentRunningProcess->RemainingTime -= (now - CurrentRunningProcessStart);
                 CurrentRunningProcess->Running = false;
-                fprintf(OutputeFile, "At time %d process %d stopped arr %d total %d remain %d wait %d\n", now, CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
-                //printf("At time %d process %d stopped arr %d total %d remain %d wait %d\n", getClk(), CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
+                fprintf(OutputeFile, "At time %d process %d stopped arr %d total %d remain %d wait %d\n", now, CurrentRunningProcess->generationID, CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
+                // printf("At time %d process %d stopped arr %d total %d remain %d wait %d\n", getClk(), CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
                 PriEnqueue(ReadyQueue, &CurrentRunningProcess, CurrentRunningProcess->Priority);
                 CurrentRunningProcess = NULL;
                 continue;
@@ -94,8 +94,8 @@ void HPF(FILE* OutputeFile,int ProcessArrivalQueue)
                         CurrentRunningProcess->StartTime = getClk();
                     CurrentRunningProcessStart = CurrentRunningProcess->StartTime;
                     CurrentRunningProcess->Running = true;
-                    fprintf(OutputeFile,"At time %d process %d started arr %d total %d remain %d wait %d\n",CurrentRunningProcess->StartTime,CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime,CurrentRunningProcess->RunningTime,CurrentRunningProcess->RemainingTime,CurrentRunningProcess->WaitTime);
-                    //printf("At time %d process %d started arr %d total %d remain %d wait %d\n",CurrentRunningProcess->StartTime,CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime,CurrentRunningProcess->RunningTime,CurrentRunningProcess->RemainingTime,CurrentRunningProcess->WaitTime);
+                    fprintf(OutputeFile, "At time %d process %d started arr %d total %d remain %d wait %d\n", CurrentRunningProcess->StartTime, CurrentRunningProcess->generationID, CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
+                    // printf("At time %d process %d started arr %d total %d remain %d wait %d\n",CurrentRunningProcess->StartTime,CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime,CurrentRunningProcess->RunningTime,CurrentRunningProcess->RemainingTime,CurrentRunningProcess->WaitTime);
                     continue;
                 }
             }
@@ -105,11 +105,12 @@ void HPF(FILE* OutputeFile,int ProcessArrivalQueue)
                 CurrentRunningProcessStart = getClk();
                 kill(CurrentRunningProcess->ID, SIGCONT);
                 CurrentRunningProcess->Running = true;
-                fprintf(OutputeFile,"At time %d process %d resumed arr %d total %d remain %d wait %d\n",CurrentRunningProcessStart,CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime,CurrentRunningProcess->RunningTime,CurrentRunningProcess->RemainingTime,CurrentRunningProcess->WaitTime);
+                fprintf(OutputeFile, "At time %d process %d resumed arr %d total %d remain %d wait %d\n", CurrentRunningProcessStart, CurrentRunningProcess->generationID, CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
                 continue;
             }
         }
     }
     // end of algorithm
+    fprintf(OutputeFile, "#ReadyQueue has %d processes\n", ReadyQueue->count);
     free(ReadyQueue);
 }

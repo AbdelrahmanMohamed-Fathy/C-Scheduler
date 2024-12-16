@@ -20,31 +20,30 @@ int main(int argc, char *argv[])
     ProcessMessageQueue = msgget(MSGKEY, IPC_CREAT | 0666);
     cpuData PreformanceData;
 
-
-    FILE * OutputFile = fopen("scheduler.log", "w");
+    FILE *OutputFile = fopen("scheduler.log", "w");
     switch (SchedulingAlgorithm)
     {
     case Shortest_Job_First:
-        fprintf(OutputFile,"#SJF:\n");
+        fprintf(OutputFile, "#SJF:\n");
         // SJF();
         break;
     case Premptive_Highest_Priority_First:
-        fprintf(OutputFile,"#HPF:\n");
-        HPF(OutputFile,ProcessMessageQueue);
+        fprintf(OutputFile, "#HPF:\n");
+        HPF(OutputFile, ProcessMessageQueue);
         break;
     case Round_Robin:
-        fprintf(OutputFile,"#RR:\n");
-        RR(OutputFile,ProcessMessageQueue, Quantum);
+        fprintf(OutputFile, "#RR:\n");
+        RR(OutputFile, ProcessMessageQueue, Quantum);
         break;
     case Multiple_Level_Feedback_Loop:
-        fprintf(OutputFile,"#MLFP:\n");
-        MLFQ(OutputFile,ProcessMessageQueue);
+        fprintf(OutputFile, "#MLFP:\n");
+        MLFQ(OutputFile, ProcessMessageQueue);
         break;
     }
 
     fclose(OutputFile);
     printf("scheduler terminating normally.\n");
-    destroyClk(true);
+    destroyClk(false);
     clearResources(0);
 }
 
