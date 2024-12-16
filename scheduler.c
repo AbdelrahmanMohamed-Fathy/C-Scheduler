@@ -3,6 +3,7 @@
 #include "cpuData.h"
 #include "HPF.h"
 #include "RoundRobin.h"
+#include "meow.h"
 
 void clearResources(int signum);
 
@@ -37,6 +38,7 @@ int main(int argc, char *argv[])
         break;
     case Multiple_Level_Feedback_Loop:
         fprintf(OutputFile,"#MLFP:\n");
+        MLFQ(OutputFile,ProcessMessageQueue);
         break;
     }
 
