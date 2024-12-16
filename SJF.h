@@ -36,8 +36,8 @@ void SJF(FILE *OutputeFile,int ProcessMessageQueue)
         if (currentlyrunningproc)
         {
             PriDequeue(SJFqueue, &currentlyrunningproc);
-            pid_t runproc = fork();
-            if (runproc == 0)
+            currentlyrunningproc->ID = fork();
+            if (currentlyrunningproc->ID == 0)
             {
                 char runtime[4];
                 sprintf(runtime, "%d", currentlyrunningproc->RunningTime);
@@ -48,9 +48,9 @@ void SJF(FILE *OutputeFile,int ProcessMessageQueue)
 
                 if (currentlyrunningproc->StartTime == -1)
                     currentlyrunningproc->StartTime = getClk();
-                    CurrentRunningProcessStart = currentlyrunningproc->StartTime;
-                    currentlyrunningproc->Running = true;
-                    fprintf(OutputeFile, "At time %d process %d started arr %d total %d remain %d wait %d\n", currentlyrunningproc->StartTime, currentlyrunningproc->generationID, currentlyrunningproc->ArrivalTime, currentlyrunningproc->RunningTime, currentlyrunningproc->RemainingTime, currentlyrunningproc->WaitTime);
+                CurrentRunningProcessStart = currentlyrunningproc->StartTime;
+                currentlyrunningproc->Running = true;
+                fprintf(OutputeFile, "At time %d process %d started arr %d total %d remain %d wait %d\n", currentlyrunningproc->StartTime, currentlyrunningproc->generationID, currentlyrunningproc->ArrivalTime, currentlyrunningproc->RunningTime, currentlyrunningproc->RemainingTime, currentlyrunningproc->WaitTime);
             }
         }
         else if (waitpid(currentlyrunningproc->ID, &statloc, 0) != -1)
@@ -58,6 +58,7 @@ void SJF(FILE *OutputeFile,int ProcessMessageQueue)
             currentlyrunningproc->Running = false;
             currentlyrunningproc->EndTime = getClk();
             currentlyrunningproc->RemainingTime=0;
+            fprintf(OutputeFile, "At time %d process %d finished arr %d total %d remain %d wait %d\n", currentlyrunningproc->StartTime, currentlyrunningproc->generationID, currentlyrunningproc->ArrivalTime, currentlyrunningproc->RunningTime, currentlyrunningproc->RemainingTime, currentlyrunningproc->WaitTime);
             free(currentlyrunningproc);
             currentlyrunningproc = NULL;
         }
