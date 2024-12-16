@@ -3,6 +3,7 @@
 #include "cpuData.h"
 #include "HPF.h"
 #include "RoundRobin.h"
+#include "meow.h"
 
 void clearResources(int signum);
 
@@ -24,15 +25,20 @@ int main(int argc, char *argv[])
     switch (SchedulingAlgorithm)
     {
     case Shortest_Job_First:
+        fprintf(OutputFile,"#SJF:\n");
         // SJF();
         break;
     case Premptive_Highest_Priority_First:
+        fprintf(OutputFile,"#HPF:\n");
         HPF(OutputFile,ProcessMessageQueue);
         break;
     case Round_Robin:
+        fprintf(OutputFile,"#RR:\n");
         RR(OutputFile,ProcessMessageQueue, Quantum);
         break;
     case Multiple_Level_Feedback_Loop:
+        fprintf(OutputFile,"#MLFP:\n");
+        MLFQ(OutputFile,ProcessMessageQueue);
         break;
     }
 

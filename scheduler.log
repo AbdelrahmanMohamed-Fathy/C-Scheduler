@@ -1,8 +1,8 @@
-process with id=1 arrived at clock=4 and running time=19 
-process with id=1 remaining time=17 clock=6 
-process with id=1 remaining time=15 clock=8 
-process with id=2 arrived at clock=8 and running time=0 
-process with id=1 remaining time=13 clock=10 
-process with id=1 remaining time=11 clock=12 
-process with id=1 remaining time=9 clock=14 
-process with id=1 remaining time=7 clock=16 
+#RR:
+process with id=1 arrived at clock=10 and running time=13 
+process with id=1 remaining time=11 clock=22 
+process with id=2 arrived at clock=22 and running time=11 
+process with id=1 remaining time=9 clock=33 
+process with id=3 arrived at clock=33 and running time=18 
+process with id=2 remaining time=9 clock=44 
+process with id=4 arrived at clock=44 and running time=22 
