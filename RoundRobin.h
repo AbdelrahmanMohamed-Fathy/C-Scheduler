@@ -12,7 +12,7 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum )
     PCB *runningprocess = NULL;
     PCB *newProcess;
     cpuData* cpudata;
-    while (!isCircQueueEmpty(RRqueue) || !messagesdone)
+    while (!isCircQueueEmpty(RRqueue) || !messagesdone || runningprocess)
     {
         if (msgrcv(ProcessMessageQueue, &RRmsg, sizeof(msg), 20, IPC_NOWAIT) != -1)
         {
@@ -37,7 +37,7 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum )
         if (!isCircQueueEmpty(RRqueue))
         {
             CircDequeue(RRqueue, &runningprocess);
-            if (runningprocess->StartTime == -1)
+            if (runningprocess->ID == -1)
             {   // if its the first time for the process to run
                 runningprocess->ID = fork();
                 if (runningprocess->ID == 0)
@@ -61,6 +61,10 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum )
                 //if the process will finish in the current quantum
                 kill(runningprocess->ID, SIGCONT);
                 time = getClk();
+                if(runningprocess->RemainingTime == runningprocess->RunningTime)
+                    fprintf(OutputFile, "At time %d process %d started arr %d total %d remain %d wait %d\n",time , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
+                else
+                    fprintf(OutputFile, "At time %d process %d resumed arr %d total %d remain %d wait %d\n",time , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
                 wait_time = (time + runningprocess->RemainingTime) - getClk();
                 if (wait_time > 0)
                     sleep(wait_time);
@@ -68,6 +72,8 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum )
                 runningprocess->RemainingTime = 0;
                 runningprocess->Running = false;
                 runningprocess->WaitTime = runningprocess->EndTime - runningprocess->StartTime - runningprocess->RunningTime + runningprocess->RemainingTime;
+                if(runningprocess->WaitTime<0)
+                    runningprocess->WaitTime=0;
                 meow(cpudata, runningprocess);
                 fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %d\n",runningprocess->EndTime , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime,runningprocess->EndTime - runningprocess->ArrivalTime,(runningprocess->EndTime - runningprocess->ArrivalTime) / runningprocess->RunningTime);
             }
@@ -84,6 +90,8 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum )
                     sleep(wait_time);
                 runningprocess->RemainingTime -= quantum;
                 runningprocess->WaitTime = getClk() - runningprocess->StartTime - runningprocess->RunningTime + runningprocess->RemainingTime;
+                if(runningprocess->WaitTime<0)
+                    runningprocess->WaitTime=0;
                 kill(runningprocess->ID, SIGSTOP);
                 fprintf(OutputFile, "At time %d process %d stopped arr %d total %d remain %d wait %d\n",getClk() , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
             }
@@ -94,6 +102,7 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum )
             else
             {   //if the process has finished
                 free(runningprocess);
+                runningprocess = NULL;
             }
         }
     }
