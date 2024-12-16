@@ -2,11 +2,12 @@
 #include "headers.h"
 #include "DataStructures/priQueue.h"
 
-void HPF(int ProcessArrivalQueue)
+void HPF(FILE* OutputeFile,int ProcessArrivalQueue)
 {
     PCB *CurrentRunningProcess = NULL;
     priQueue *ReadyQueue = CreatePriQueue();
     bool MessagesDone = false;
+    int CurrentRunningProcessStart;
     int statloc;
 
     while (ReadyQueue->count != 0 || !MessagesDone || !CurrentRunningProcess)
@@ -37,22 +38,26 @@ void HPF(int ProcessArrivalQueue)
         if (CurrentRunningProcess)
         {
             // handling already running process
-            if (waitpid(CurrentRunningProcess->ID, &statloc, WNOHANG) != -1)
+            if (waitpid(CurrentRunningProcess->ID, &statloc, WNOHANG) < 0)
             {
                 // handling process termination
                 CurrentRunningProcess->EndTime = getClk();
+                CurrentRunningProcess->RemainingTime = 0;
                 //
+                fprintf(OutputeFile, "At time %d process %d finished arr %d total %d remain %d wait %d\n", getClk(), CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
                 free(CurrentRunningProcess);
                 CurrentRunningProcess = NULL;
                 continue;
             }
-            else if (CurrentRunningProcess->Priority < ReadyQueue->front->priority)
+            else if (CurrentRunningProcess->Priority > ReadyQueue->front->priority)
             {
                 // handling higher priority switch
                 kill(CurrentRunningProcess->ID, SIGSTOP);
+                CurrentRunningProcess->RemainingTime -= (getClk()-CurrentRunningProcessStart);
                 CurrentRunningProcess->Running = false;
                 PriEnqueue(ReadyQueue, &CurrentRunningProcess, CurrentRunningProcess->Priority);
                 CurrentRunningProcess = NULL;
+                continue;
             }
         }
         else
@@ -77,13 +82,16 @@ void HPF(int ProcessArrivalQueue)
                 {
                     if (CurrentRunningProcess->StartTime == -1)
                         CurrentRunningProcess->StartTime = getClk();
+                    CurrentRunningProcessStart = CurrentRunningProcess->StartTime;
                     CurrentRunningProcess->Running = true;
+                    fprintf(OutputeFile,"At time %d process %d started arr %d total %d remain %d wait %d\n",CurrentRunningProcess->StartTime,CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime,CurrentRunningProcess->RunningTime,CurrentRunningProcess->RemainingTime,CurrentRunningProcess->WaitTime);
                 }
             }
             else
             {
                 // handling process that already started but didnt finish
                 kill(CurrentRunningProcess->ID, SIGCONT);
+                CurrentRunningProcessStart = getClk();
                 CurrentRunningProcess->Running = true;
             }
         }

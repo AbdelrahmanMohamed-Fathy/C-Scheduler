@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
     SchedulerMessage.mtype = 20;
     msgsnd(ProcessMessageQueue, &SchedulerMessage, sizeof(SchedulerMessage), !IPC_NOWAIT);
     if (DebugMode)
-                printf("Termination Message Sent");
+                printf("Termination Message Sent\n");
 
     if (DebugMode)
         printf("generator terminating normally.\n");
