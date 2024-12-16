@@ -38,7 +38,7 @@ void HPF(FILE *OutputFile, int ProcessArrivalQueue)
             newProcess->WaitTime = 0;
             newProcess->Running = false;
             PriEnqueue(ReadyQueue, &newProcess, newProcess->Priority);
-            fprintf(OutputFile, "#ReadyQueue has %d processes\n", ReadyQueue->count);
+            //fprintf(OutputFile, "#ReadyQueue has %d processes\n", ReadyQueue->count);
         }
 
         if (CurrentRunningProcess)

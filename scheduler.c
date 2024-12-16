@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
         break;
     case Multiple_Level_Feedback_Loop:
         fprintf(OutputFile, "#MLFP:\n");
-        MLFQ(OutputFile, ProcessMessageQueue);
+        MLFQ(OutputFile, ProcessMessageQueue, Quantum);
         break;
     }
 
