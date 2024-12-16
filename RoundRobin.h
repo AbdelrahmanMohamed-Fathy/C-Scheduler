@@ -31,12 +31,13 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum)
             newProcess->EndTime = -1;
             newProcess->WaitTime = 0;
             newProcess->Running = false;
-            CircEnqueue(RRqueue, newProcess);
+            CircEnqueue(RRqueue, &newProcess);
+            fprintf(OutputFile,"process with id=%d arrived at clock=%d and running time=%d \n",newProcess->generationID,getClk(),newProcess->RunningTime);
         }
 
         if (!isCircQueueEmpty(RRqueue)) //if there's a process to run (will always be true after the first process arrives)
         {
-            CircDequeue(RRqueue, runningprocess);
+            CircDequeue(RRqueue, &runningprocess);
             if (runningprocess->StartTime == -1)
             {
                 //if its the first time to run the process
@@ -47,7 +48,7 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum)
                     sprintf(runtime, "%d", runningprocess->RunningTime);
                     execl("bin/process.out", "./process.out", runtime, NULL);
                 }
-                runningprocess->StartTime = getClk();
+                runningprocess->StartTime = getClk();    
                 runningprocess->Running = true;
             }
             
@@ -57,12 +58,12 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum)
                 kill(runningprocess->ID, SIGCONT);
                 time = getClk();
                 while (getClk() < (time + runningprocess->RemainingTime));
-                runningprocess->RunningTime += runningprocess->RemainingTime;
                 runningprocess->RemainingTime = 0;
                 runningprocess->Running = false;
                 runningprocess->EndTime = getClk();
-                fprintf(OutputFile, "process with id=%d and runningtime=%d finished at %d", runningprocess->ID, runningprocess->RunningTime, runningprocess->EndTime);
-                
+                kill(runningprocess->ID, SIGSTOP);
+                fprintf(OutputFile, "process with id=%d and runningtime=%d finished at %d \n", runningprocess->generationID, runningprocess->RunningTime, runningprocess->EndTime);
+                //free(runningprocess);
             }
             else
             {
@@ -71,26 +72,23 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum)
                 time =getClk();
                 while (getClk() < (time + quantum));
                 runningprocess->RemainingTime -= quantum;
-                runningprocess->RunningTime += quantum;
                 kill(runningprocess->ID, SIGSTOP);
-                CircEnqueue(RRqueue, runningprocess);
-                fprintf(OutputFile,"process with id=%d remaining time=%d clock=%d ", runningprocess->ID, runningprocess->RemainingTime, getClk());
+                fprintf(OutputFile,"process with id=%d remaining time=%d clock=%d \n", runningprocess->generationID, runningprocess->RemainingTime, getClk());
                 
             }
-            while(RRqueue->count==0){
+            while(RRqueue->count==0 && runningprocess->Running){
                 if (runningprocess->RemainingTime <= quantum)
                 {
                     //if the process will finish in the current quantum
                     kill(runningprocess->ID, SIGCONT);
                     time = getClk();
                     while (getClk() < (time + runningprocess->RemainingTime));
-                    runningprocess->RunningTime += runningprocess->RemainingTime;
                     runningprocess->RemainingTime = 0;
                     runningprocess->Running = false;
-                    kill(runningprocess->ID, SIGSTOP);
                     runningprocess->EndTime = getClk();
-                    fprintf(OutputFile, "process with id=%d and runningtime=%d finished at %d", runningprocess->ID, runningprocess->RunningTime, runningprocess->EndTime);
-                    
+                    kill(runningprocess->ID, SIGSTOP);
+                    fprintf(OutputFile, "process with id=%d and runningtime=%d finished at %d \n", runningprocess->generationID, runningprocess->RunningTime, runningprocess->EndTime);
+                    //free(runningprocess);
                 }
                 else
                 {
@@ -99,13 +97,11 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum)
                     time =getClk();
                     while (getClk() < (time + quantum));
                     runningprocess->RemainingTime -= quantum;
-                    runningprocess->RunningTime += quantum;
-                    CircEnqueue(RRqueue, runningprocess);
-                    fprintf(OutputFile, "process with id=%d remaining time=%d clock=%d ", runningprocess->ID, runningprocess->RemainingTime, getClk());
+                    kill(runningprocess->ID, SIGSTOP);
+                    fprintf(OutputFile, "process with id=%d remaining time=%d clock=%d \n", runningprocess->generationID, runningprocess->RemainingTime, getClk());
                     
                 }
 
-                lastquantum=getClk();
                 if (msgrcv(ProcessMessageQueue, &RRmsg, sizeof(msg), 20, IPC_NOWAIT) != -1)
                 {
                     messagesdone = true;
@@ -123,11 +119,15 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum)
                     newProcess->EndTime = -1;
                     newProcess->WaitTime = 0;
                     newProcess->Running = false;
-                    CircEnqueue(RRqueue, newProcess);
+                    CircEnqueue(RRqueue, &newProcess);
+                    fprintf(OutputFile,"process with id=%d arrived at clock=%d and running time=%d \n",newProcess->generationID,getClk(),newProcess->RunningTime);
                 }
+                if(!isCircQueueEmpty(RRqueue)){
+                    CircEnqueue(RRqueue,&runningprocess);
+                    CircDequeue(RRqueue,&runningprocess);
+                }
+                lastquantum=getClk();
             }
-            free(runningprocess);
-            runningprocess = NULL;
         }
     }
     printf("RR done");
