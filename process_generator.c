@@ -11,6 +11,7 @@ Algorithm SchedulingAlgorithm = Round_Robin;
 int Quantum = 2;
 int ProcessMessageQueue = -1;
 pid_t scheduler = -1;
+
 int main(int argc, char *argv[])
 {
     signal(SIGINT, clearResources);
@@ -77,6 +78,8 @@ int main(int argc, char *argv[])
         execl("bin/clk.out", "./clk.out", NULL);
     }
     initClk();
+    int x = getClk();
+    printf("Current Time is %d\n", x);
     pid_t scheduler = fork();
     if (scheduler == 0)
     {
@@ -87,8 +90,6 @@ int main(int argc, char *argv[])
         execl("bin/scheduler.out", "./scheduler.out", algo, quant, NULL);
     }
     //  To get time use this function.
-    int x = getClk();
-    printf("Current Time is %d\n", x);
 
     // TODO Generation Main Loop
     // 6. Send the information to the scheduler at the appropriate time.
@@ -125,12 +126,12 @@ int main(int argc, char *argv[])
     SchedulerMessage.mtype = 20;
     msgsnd(ProcessMessageQueue, &SchedulerMessage, sizeof(SchedulerMessage), !IPC_NOWAIT);
     if (DebugMode)
-                printf("Termination Message Sent\n");
+        printf("Termination Message Sent\n");
 
+    waitpid(scheduler, NULL, 0);
     if (DebugMode)
         printf("generator terminating normally.\n");
-    destroyClk(false);
-    clearResources(0);
+    destroyClk(true);
 }
 
 void clearResources(int signum)
@@ -141,8 +142,6 @@ void clearResources(int signum)
     {
         free(data);
     }
-    if (scheduler == -1)
-        destroyClk(true);
     if (proccesqueue)
         free(proccesqueue);
     exit(1);
