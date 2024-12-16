@@ -95,5 +95,3 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum )
     printf("RR done");
     free(RRqueue);
 }
-
-
