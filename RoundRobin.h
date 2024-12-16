@@ -2,7 +2,7 @@
 #include "DataStructures/CircularQueue.h"
 #include "PCB.h"
 
-void RR(int ProcessMessageQueue, int quantum)
+void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum)
 {
     int lastquantum = 0;
     bool messagesdone=false;
@@ -13,6 +13,7 @@ void RR(int ProcessMessageQueue, int quantum)
     PCB *newProcess;
     while (!isCircQueueEmpty(RRqueue) || !messagesdone)
     {
+        lastquantum=getClk();
         if (msgrcv(ProcessMessageQueue, &RRmsg, sizeof(msg), 20, IPC_NOWAIT) != -1)
         {
             messagesdone = true;
@@ -60,7 +61,7 @@ void RR(int ProcessMessageQueue, int quantum)
                 runningprocess->RemainingTime = 0;
                 runningprocess->Running = false;
                 runningprocess->EndTime = getClk();
-                printf("process with id=%d and runningtime=%d finished at %d", runningprocess->ID, runningprocess->RunningTime, runningprocess->EndTime);
+                fprintf(OutputFile, "process with id=%d and runningtime=%d finished at %d", runningprocess->ID, runningprocess->RunningTime, runningprocess->EndTime);
                 
             }
             else
@@ -73,7 +74,7 @@ void RR(int ProcessMessageQueue, int quantum)
                 runningprocess->RunningTime += quantum;
                 kill(runningprocess->ID, SIGSTOP);
                 CircEnqueue(RRqueue, runningprocess);
-                printf("process with id=%d remaining time=%d clock=%d ", runningprocess->ID, runningprocess->RemainingTime, getClk());
+                fprintf(OutputFile,"process with id=%d remaining time=%d clock=%d ", runningprocess->ID, runningprocess->RemainingTime, getClk());
                 
             }
             while(RRqueue->count==0){
@@ -88,7 +89,7 @@ void RR(int ProcessMessageQueue, int quantum)
                     runningprocess->Running = false;
                     kill(runningprocess->ID, SIGSTOP);
                     runningprocess->EndTime = getClk();
-                    printf("process with id=%d and runningtime=%d finished at %d", runningprocess->ID, runningprocess->RunningTime, runningprocess->EndTime);
+                    fprintf(OutputFile, "process with id=%d and runningtime=%d finished at %d", runningprocess->ID, runningprocess->RunningTime, runningprocess->EndTime);
                     
                 }
                 else
@@ -100,11 +101,11 @@ void RR(int ProcessMessageQueue, int quantum)
                     runningprocess->RemainingTime -= quantum;
                     runningprocess->RunningTime += quantum;
                     CircEnqueue(RRqueue, runningprocess);
-                    printf("process with id=%d remaining time=%d clock=%d ", runningprocess->ID, runningprocess->RemainingTime, getClk());
+                    fprintf(OutputFile, "process with id=%d remaining time=%d clock=%d ", runningprocess->ID, runningprocess->RemainingTime, getClk());
                     
                 }
 
-
+                lastquantum=getClk();
                 if (msgrcv(ProcessMessageQueue, &RRmsg, sizeof(msg), 20, IPC_NOWAIT) != -1)
                 {
                     messagesdone = true;

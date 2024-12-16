@@ -31,7 +31,8 @@ int main(int argc, char *argv[])
         HPF(OutputFile,ProcessMessageQueue);
         break;
     case Round_Robin:
-        RR(ProcessMessageQueue, Quantum);
+        fprintf(OutputFile,"meow");
+        RR(OutputFile,ProcessMessageQueue, Quantum);
         break;
     case Multiple_Level_Feedback_Loop:
         break;
