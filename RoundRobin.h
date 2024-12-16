@@ -12,14 +12,14 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum )
     CircQueue *RRqueue = CreatecircQueue();
     PCB *runningprocess = NULL;
     PCB *newProcess;
-    while (!isCircQueueEmpty(RRqueue) || !messagesdone || runningprocess != NULL)
+    while (!isCircQueueEmpty(RRqueue) || !messagesdone)
     {
         lastquantum = getClk();
         if (msgrcv(ProcessMessageQueue, &RRmsg, sizeof(msg), 20, IPC_NOWAIT) != -1)
         {
             messagesdone = true;
         }
-        else if (msgrcv(ProcessMessageQueue, &RRmsg, sizeof(msg), 1, IPC_NOWAIT) != -1)
+        else if(msgrcv(ProcessMessageQueue, &RRmsg, sizeof(msg), 1, IPC_NOWAIT) != -1)
         {
             newProcess = (PCB *)malloc(sizeof(PCB));
             newProcess->generationID = RRmsg.data.id;
@@ -75,7 +75,7 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum )
             {
                 kill(runningprocess->ID, SIGCONT);
                 time = getClk();
-                wait_time = (time + runningprocess->RemainingTime) - getClk();
+                wait_time = (time + quantum) - getClk();
                 if (wait_time > 0)
                     sleep(wait_time);
                 runningprocess->RemainingTime -= quantum;
