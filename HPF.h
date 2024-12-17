@@ -54,7 +54,7 @@ void HPF(FILE *OutputFile, int ProcessArrivalQueue, cpuData* perfdata)
                 // handling process termination
                 CurrentRunningProcess->EndTime = getClk();
                 CurrentRunningProcess->RemainingTime -= (CurrentRunningProcess->EndTime - CurrentRunningProcessStart);
-                cpucalculations(perfdata,currentlyrunningproc);
+                cpucalculations(perfdata,CurrentRunningProcess);
                 fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n",CurrentRunningProcess->EndTime , CurrentRunningProcess->generationID, CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime,CurrentRunningProcess->WaitTime,CurrentRunningProcess->EndTime - CurrentRunningProcess->ArrivalTime,(CurrentRunningProcess->EndTime - CurrentRunningProcess->ArrivalTime) / (float)(CurrentRunningProcess->RunningTime));
                 // printf("At time %d process %d finished arr %d total %d remain %d wait %d\n", CurrentRunningProcess->EndTime, CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
                 free(CurrentRunningProcess);
