@@ -2,10 +2,14 @@
 #include "headers.h"
 #include "DataStructures/priQueue.h"
 
+priQueue *ReadyQueue;
+PCB *CurrentRunningProcess;
+PCB *newProcess;
+
 void HPF(FILE *OutputFile, int ProcessArrivalQueue)
 {
-    PCB *CurrentRunningProcess = NULL;
-    priQueue *ReadyQueue = CreatePriQueue();
+    CurrentRunningProcess = NULL;
+    ReadyQueue = CreatePriQueue();
     bool MessagesDone = false;
     int CurrentRunningProcessStart;
     int statloc;
@@ -21,7 +25,7 @@ void HPF(FILE *OutputFile, int ProcessArrivalQueue)
         }
 
         // Retrieving all Process that are sent
-        PCB *newProcess = NULL;
+        newProcess = NULL;
         while (msgrcv(ProcessArrivalQueue, &MsgData, sizeof(msg), 1, IPC_NOWAIT) != -1)
         {
             fprintf(OutputFile, "#process: %d arrived at %d\n", MsgData.data.id, MsgData.data.arrivaltime);
@@ -38,6 +42,7 @@ void HPF(FILE *OutputFile, int ProcessArrivalQueue)
             newProcess->WaitTime = 0;
             newProcess->Running = false;
             PriEnqueue(ReadyQueue, &newProcess, newProcess->Priority);
+            newProcess = NULL;
             // fprintf(OutputFile, "#ReadyQueue has %d processes\n", ReadyQueue->count);
         }
 
@@ -59,8 +64,8 @@ void HPF(FILE *OutputFile, int ProcessArrivalQueue)
             else if (ReadyQueue->front && CurrentRunningProcess->Priority > ReadyQueue->front->priority)
             {
                 // handling higher priority switch
-                kill(CurrentRunningProcess->ID, SIGTSTP);
                 int now = getClk();
+                kill(CurrentRunningProcess->ID, SIGTSTP);
                 CurrentRunningProcess->RemainingTime -= (now - CurrentRunningProcessStart);
                 CurrentRunningProcess->Running = false;
                 fprintf(OutputFile, "At time %d process %d stopped arr %d total %d remain %d wait %d\n", now, CurrentRunningProcess->generationID, CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
@@ -115,4 +120,20 @@ void HPF(FILE *OutputFile, int ProcessArrivalQueue)
     // end of algorithm
     // fprintf(OutputFile, "#ReadyQueue has %d processes\n", ReadyQueue->count);
     free(ReadyQueue);
+}
+
+void HPFFree()
+{
+    PCB* Dummy;
+    if (ReadyQueue)
+    {
+        while (PriDequeue(ReadyQueue,&Dummy))
+            free(Dummy);
+        free(ReadyQueue);
+    }
+    if (CurrentRunningProcess)
+        free(CurrentRunningProcess);
+    if (newProcess)
+        free(newProcess);
+    return;
 }

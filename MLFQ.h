@@ -2,39 +2,54 @@
 #include "DataStructures/CircularQueue.h"
 #include "PCB.h"
 
-#define NUM_QUEUES 11                       // Number of priority levels
+#define NUM_QUEUES 11 // Number of priority levels
+priQueue *queues[NUM_QUEUES];
+PCB *runningProcess;
+PCB *newProcess;
+
 
 
 void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum)
 {
-    CircQueue *queues[NUM_QUEUES];
     for (int i = 0; i < NUM_QUEUES; i++)
     {
-        queues[i] = CreatecircQueue();
+        queues[i] = CreatePriQueue();
     }
 
     int time;
-    int quantumRemainingTime = 0;
     int runningProcessStart;
+    int CurrentQueue = 0;
+    int StartQueue = 0;
+    int GivenQuantum;   
     bool messagesdone = false;
+    bool queuesEmpty = true;
+    runningProcess = NULL;
     msg MLFQmsg;
-    PCB *runningProcess = NULL;
-    PCB *newProcess;
 
-    while (!isCircQueueEmpty(*queues) || !messagesdone || runningProcess)
+    while (!queuesEmpty || !messagesdone || runningProcess)
     {
+        queuesEmpty = true;
+        for (int i = 0; i < NUM_QUEUES; i++)
+        {
+            if (!queues[i]->front)
+            {
+                queuesEmpty = false;
+                break;
+            }
+        }
         if (msgrcv(ProcessMessageQueue, &MLFQmsg, sizeof(msg), 20, IPC_NOWAIT) != -1)
         {
             messagesdone = true;
             fprintf(OutputFile, "#Recieved Termination message.\n");
         }
         // receive new processes and add to the highest priority queue (Level 0)
+        newProcess = NULL;
         while (msgrcv(ProcessMessageQueue, &MLFQmsg, sizeof(msg), 1, IPC_NOWAIT) != -1)
         {
             newProcess = (PCB *)malloc(sizeof(PCB));
             newProcess->generationID = MLFQmsg.data.id;
             newProcess->ID = -1;
-            newProcess->Priority = 0; // start in highest priority queue
+            newProcess->Priority = MLFQmsg.data.priority;
             newProcess->ArrivalTime = MLFQmsg.data.arrivaltime;
             newProcess->RunningTime = MLFQmsg.data.runningtime;
             newProcess->RemainingTime = MLFQmsg.data.runningtime;
@@ -42,126 +57,118 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum)
             newProcess->EndTime = -1;
             newProcess->WaitTime = 0;
             newProcess->Running = false;
-            CircEnqueue(queues[0], &newProcess);
+            PriEnqueue(queues[newProcess->Priority], &newProcess, newProcess->ArrivalTime);
+            newProcess = NULL;
+            //printf("#process with id=%d arrived at clock=%d and running time=%d \n", newProcess->generationID, newProcess->ArrivalTime, newProcess->RunningTime);
             fprintf(OutputFile, "#process with id=%d arrived at clock=%d and running time=%d \n", newProcess->generationID, newProcess->ArrivalTime, newProcess->RunningTime);
         }
-
-        if (!runningProcess) //I'm not working on a process at the moment, have to dequeue a new one
+        
+        if(runningProcess)
         {
-            for (int i = 0; i < 11; i++)
-            {
-                if (CircDequeue(queues[i], &runningProcess))
-                {
-                    runningProcess->Priority = i;
-                    break;
-                }
-            }
-
-            if (!runningProcess)
+            //handling already running process
+            if (getClk() - runningProcessStart + GivenQuantum > 0)
                 continue;
-
-            if (runningProcess->ID == -1) //A non forked process, so we start anew
+            else 
             {
-                runningProcess->ID = fork();
-                if (runningProcess->ID == 0)
-                {
-                    char runtime[4];
-                    sprintf(runtime, "%d", runningProcess->RunningTime);
-                    execl("bin/process.out", "./process.out", runtime, NULL);
-                }
-                else
-                {
-                    runningProcess->StartTime = getClk();
-                    runningProcessStart = runningProcess->StartTime;
-                    runningProcess->Running = true;
-                    runningProcess->WaitTime = runningProcess->StartTime - runningProcess->ArrivalTime;
-                    fprintf(OutputFile, "At time %d process %d started arr %d total %d remain %d wait %d\n", runningProcess->StartTime, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
-                }
-            }
-            else //an already forked process, so we just continue where we stopped
-            { 
-                runningProcessStart = getClk();
-                runningProcess->WaitTime = runningProcess->StartTime - runningProcess->ArrivalTime + runningProcess->RunningTime - runningProcess->RemainingTime;
-                kill(runningProcess->ID, SIGCONT);
-                runningProcess->Running = true;
-                fprintf(OutputFile, "At time %d process %d resumed arr %d total %d remain %d wait %d\n", runningProcessStart, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
-            }
-        }
-
-        else //I have a message I'm working on
-        {
-            if (quantumRemainingTime != 0) //Cashing out on a previous unfinished quantum
-            {
-                if (runningProcess->RemainingTime <= quantumRemainingTime)
-            {
-                quantumRemainingTime = quantumRemainingTime - runningProcess->RemainingTime;
-                if (waitpid(runningProcess->ID, NULL, !WNOHANG) == runningProcess->ID) //Since I expect it to happen, I wait for process termination
+                if (waitpid(runningProcess->ID, NULL, WNOHANG) == runningProcess->ID) //Since I expect it to happen, I wait for process termination
                 {
                     runningProcess->EndTime = getClk();
-                    runningProcess->RemainingTime -= quantum + quantumRemainingTime;
+                    runningProcess->RemainingTime -= GivenQuantum;
+                    runningProcess->Running = false;
                     fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d\n", runningProcess->EndTime, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
                     free(runningProcess);
                     runningProcess = NULL;
+                    continue;
                 }
-            }
-            else if (runningProcess->RemainingTime > quantumRemainingTime)
-            {
-                quantumRemainingTime = 0;
-                sleep(quantumRemainingTime);
-                kill(runningProcess->ID, SIGTSTP);
-                runningProcess->RemainingTime -= quantumRemainingTime;
-                runningProcess->Running = false;
-                fprintf(OutputFile, "At time %d process %d stopped arr %d total %d remain %d wait %d\n", getClk(), runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
-                if (runningProcess->Priority < 11)
+                else
                 {
-                    runningProcess->Priority++;
+                    int now = getClk();
+                    PriEnqueue(queues[runningProcess->Priority],&runningProcess,now);
+                    kill(runningProcess->ID,SIGTSTP);
+                    runningProcess->Running = false;
+                    runningProcess->RemainingTime -= GivenQuantum;
+                    fprintf(OutputFile, "At time %d process %d stopped arr %d total %d remain %d wait %d\n", now, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
+                    runningProcess=NULL;
+                    continue;
                 }
-                CircEnqueue(queues[runningProcess->Priority], &runningProcess);
-                runningProcess = NULL;
             }
+            
+
+        }
+        else if (!queuesEmpty)
+        {
+            //handling no running process
+            bool Found = false;
+            for (int i = CurrentQueue; i >= 0; i--)
+            {
+                if(PriDequeue(queues[CurrentQueue],&runningProcess))
+                {
+                    Found = true;
+                    break;
+                }
+            }
+            if (!Found)
+            {
+                StartQueue = (StartQueue+1) % NUM_QUEUES;
+                CurrentQueue = StartQueue;
+                continue;
             }
             else
             {
-                PCB *processCheck; 
-                for (int i = 0; i < 11; i++)
+                if (runningProcess->ID == -1)
                 {
-                    if (CircDequeue(queues[i], &processCheck))
+                    //handling process that never started before
+                    runningProcess->ID = fork();
+                    if (runningProcess->ID == 0)
                     {
-                        processCheck->Priority = i;
-                        break;
+                        char runtime[4];
+                        sprintf(runtime, "%d", runningProcess->RunningTime);
+                        execl("bin/process.out", "./process.out", runtime, NULL);
+                    }
+                    else
+                    {
+                        runningProcess->StartTime = getClk();
+                        runningProcessStart = runningProcess->StartTime;
+                        runningProcess->Running = true;
+                        runningProcess->WaitTime = runningProcess->StartTime - runningProcess->ArrivalTime;
+                        GivenQuantum = (runningProcess->RemainingTime>=quantum) ? (quantum) : (runningProcess->RemainingTime);
                     }
                 }
-                if (processCheck->Priority < runningProcess->Priority) //Checks if I recieved a higher priority message between quantums
+                else
                 {
-                    runningProcess = processCheck;
+                    runningProcessStart = getClk();
+                    kill(runningProcess->ID, SIGCONT);
+                    runningProcess->Running = true;
+                    runningProcess->WaitTime = runningProcess->StartTime - runningProcess->ArrivalTime + runningProcess->RunningTime - runningProcess->RemainingTime;
+                    GivenQuantum = (runningProcess->RemainingTime>=quantum) ? (quantum) : (runningProcess->RemainingTime);
+                    fprintf(OutputFile, "At time %d process %d resumed arr %d total %d remain %d wait %d\n", runningProcessStart, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime); 
                 }
-                if (runningProcess->RemainingTime <= quantum)
-                {
-                    quantumRemainingTime = quantum - runningProcess->RemainingTime;
-                    if (waitpid(runningProcess->ID, NULL, !WNOHANG) == runningProcess->ID) //Since I expect it to happen, I wait for process termination
-                    {
-                        runningProcess->EndTime = getClk();
-                        runningProcess->RemainingTime -= quantum + quantumRemainingTime;
-                        fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d\n", runningProcess->EndTime, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
-                        free(runningProcess);
-                        runningProcess = NULL;
-                    }
-                }
-                else if (runningProcess->RemainingTime > quantum)
-                {
-                    sleep(quantum);
-                    kill(runningProcess->ID, SIGTSTP);
-                    runningProcess->RemainingTime -= quantum;
-                    runningProcess->Running = false;
-                    fprintf(OutputFile, "At time %d process %d stopped arr %d total %d remain %d wait %d\n", getClk(), runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
-                    if (runningProcess->Priority < 11)
-                    {
-                        runningProcess->Priority++;
-                    }
-                    CircEnqueue(queues[runningProcess->Priority], &runningProcess);
-                    runningProcess = NULL;
-                }
+
             }
+
         }
     }
+    for (int i = 0; i < 11; i++)
+    {
+        free(queues[i]);
+    }
+}
+
+void MLFQFree()
+{
+    PCB *Dummy;
+    for (int i = 0; i < NUM_QUEUES; i++)
+    {
+        if (queues[i])
+        {
+            while (PriDequeue(queues[i],&Dummy))
+                free(Dummy);
+            free(queues[i]);
+        }
+    }
+    if (runningProcess)
+        free(runningProcess);
+    if (newProcess)
+        free(newProcess);
+    return;
 }
