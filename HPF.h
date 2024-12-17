@@ -6,7 +6,7 @@ priQueue *ReadyQueue;
 PCB *CurrentRunningProcess;
 PCB *newProcess;
 
-void HPF(FILE *OutputFile, int ProcessArrivalQueue)
+void HPF(FILE *OutputFile, int ProcessArrivalQueue, cpuData* perfdata)
 {
     CurrentRunningProcess = NULL;
     ReadyQueue = CreatePriQueue();
@@ -54,8 +54,8 @@ void HPF(FILE *OutputFile, int ProcessArrivalQueue)
                 // handling process termination
                 CurrentRunningProcess->EndTime = getClk();
                 CurrentRunningProcess->RemainingTime -= (CurrentRunningProcess->EndTime - CurrentRunningProcessStart);
-                //
-                fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d\n", CurrentRunningProcess->EndTime, CurrentRunningProcess->generationID, CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
+                cpucalculations(perfdata,currentlyrunningproc);
+                fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n",CurrentRunningProcess->EndTime , CurrentRunningProcess->generationID, CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime,CurrentRunningProcess->WaitTime,CurrentRunningProcess->EndTime - CurrentRunningProcess->ArrivalTime,(CurrentRunningProcess->EndTime - CurrentRunningProcess->ArrivalTime) / (float)(CurrentRunningProcess->RunningTime));
                 // printf("At time %d process %d finished arr %d total %d remain %d wait %d\n", CurrentRunningProcess->EndTime, CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
                 free(CurrentRunningProcess);
                 CurrentRunningProcess = NULL;

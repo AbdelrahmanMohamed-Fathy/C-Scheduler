@@ -5,7 +5,7 @@ priQueue *SJFqueue;
 PCB *newprocess;
 PCB *currentlyrunningproc;
 
-void SJF(FILE *OutputFile,int ProcessMessageQueue)
+void SJF(FILE *OutputFile,int ProcessMessageQueue, cpuData *perfdata)
 {
     int statloc;
     bool messagedone = false;
@@ -54,6 +54,7 @@ void SJF(FILE *OutputFile,int ProcessMessageQueue)
                 {
                     currentlyrunningproc->EndTime=getClk();
                     currentlyrunningproc->RemainingTime=0;
+                    cpucalculations(perfdata,currentlyrunningproc);
                     fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n",currentlyrunningproc->EndTime , currentlyrunningproc->generationID, currentlyrunningproc->ArrivalTime, currentlyrunningproc->RunningTime, currentlyrunningproc->RemainingTime,currentlyrunningproc->WaitTime,currentlyrunningproc->EndTime - currentlyrunningproc->ArrivalTime,(currentlyrunningproc->EndTime - currentlyrunningproc->ArrivalTime) / (float)(currentlyrunningproc->RunningTime));
                     free(currentlyrunningproc);
                     currentlyrunningproc=NULL;

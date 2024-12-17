@@ -10,7 +10,7 @@ PCB *newProcess;
 
 
 
-void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum)
+void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfdata)
 {
     for (int i = 0; i < NUM_QUEUES; i++)
     {
