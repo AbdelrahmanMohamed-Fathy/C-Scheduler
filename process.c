@@ -1,4 +1,5 @@
 #include "headers.h"
+#include <stdatomic.h>
 
 /* Modify this file as needed*/
 
@@ -10,7 +11,7 @@ int time;
 
 int prevTime = 0;
 
-int remainingtime;
+atomic_int remainingtime;
 
 int main(int agrc, char *argv[])
 {
@@ -25,12 +26,11 @@ int main(int agrc, char *argv[])
     {
         while (time == getClk())
             prevTime = remainingtime;
-        remainingtime--;
+        atomic_fetch_sub(&remainingtime,1);
         time = getClk();
     }
 
     destroyClk(false);
-
     return 0;
 }
 
@@ -43,6 +43,6 @@ void stop(int signum)
 {
     printf("%d %d\n", remainingtime, prevTime);
     if (remainingtime != prevTime)
-        remainingtime--;
+        remainingtime++;
     raise(SIGSTOP);
 }

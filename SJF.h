@@ -1,14 +1,16 @@
 #include "headers.h"
 #include "DataStructures/priQueue.h"
 
+priQueue *SJFqueue;
+PCB *newprocess;
+PCB *currentlyrunningproc;
+
 void SJF(FILE *OutputFile,int ProcessMessageQueue)
 {
     int statloc;
     bool messagedone = false;
     msg MSGDATA;
-    priQueue *SJFqueue;
-    PCB *newprocess;
-    PCB *currentlyrunningproc = NULL;
+    currentlyrunningproc = NULL;
     SJFqueue = CreatePriQueue();
     while (SJFqueue->count > 0 || !messagedone || currentlyrunningproc)
     {
@@ -16,6 +18,7 @@ void SJF(FILE *OutputFile,int ProcessMessageQueue)
         {
             messagedone = true;
         }
+        newprocess = NULL;
         while (msgrcv(ProcessMessageQueue, &MSGDATA, sizeof(struct msg), 1, IPC_NOWAIT) != -1)
         {
             fprintf(OutputFile, "#process: %d arrived at %d\n", MSGDATA.data.id, MSGDATA.data.arrivaltime);
@@ -31,6 +34,7 @@ void SJF(FILE *OutputFile,int ProcessMessageQueue)
             newprocess->WaitTime = 0;
             newprocess->Running = false;
             PriEnqueue(SJFqueue, &newprocess, newprocess->Priority);
+            newprocess = NULL;
         }
         if(PriDequeue(SJFqueue,&currentlyrunningproc))
         {
@@ -57,4 +61,20 @@ void SJF(FILE *OutputFile,int ProcessMessageQueue)
             }
         }
     }
+}
+
+void SJFFree()
+{
+    PCB* Dummy;
+    if (SJFqueue)
+    {
+        while (PriDequeue(SJFqueue,&Dummy))
+            free(Dummy);
+        free(SJFqueue);
+    }
+    if (currentlyrunningproc)
+        free(currentlyrunningproc);
+    if (newprocess)
+        free(newprocess);
+    return;
 }

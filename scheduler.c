@@ -9,14 +9,14 @@
 void clearResources(int signum);
 
 int ProcessMessageQueue;
-
+Algorithm SchedulingAlgorithm;
 // TODO: implement the scheduler.
 // TODO: upon termination release the clock resources.
 int main(int argc, char *argv[])
 {
     signal(SIGINT, clearResources);
     initClk();
-    Algorithm SchedulingAlgorithm = atoi(argv[1]);
+    SchedulingAlgorithm = atoi(argv[1]);
     int Quantum = atoi(argv[2]);
     ProcessMessageQueue = msgget(MSGKEY, IPC_CREAT | 0666);
     cpuData PreformanceData;
@@ -51,5 +51,20 @@ int main(int argc, char *argv[])
 void clearResources(int signum)
 {
     msgctl(ProcessMessageQueue, IPC_RMID, NULL);
+    switch (SchedulingAlgorithm)
+    {
+    case Shortest_Job_First:
+        SJFFree();
+        break;
+    case Premptive_Highest_Priority_First:
+        HPFFree();
+        break;
+    case Round_Robin:
+        //RRFree();
+        break;
+    case Multiple_Level_Feedback_Loop:
+        MLFQFree();
+        break;
+    }
     exit(1);
 }
