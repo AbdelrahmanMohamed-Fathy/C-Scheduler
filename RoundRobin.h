@@ -78,7 +78,7 @@ void RR(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfdat
                 printf("At time %d process %d started arr %d total %d remain %d wait %d\n",getClk() , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
                 fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n",runningprocess->EndTime , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime,runningprocess->EndTime - runningprocess->ArrivalTime,(runningprocess->EndTime - runningprocess->ArrivalTime) / (float)(runningprocess->RunningTime));
                 printf("At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n",runningprocess->EndTime , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime,runningprocess->EndTime - runningprocess->ArrivalTime,(runningprocess->EndTime - runningprocess->ArrivalTime) / (float)(runningprocess->RunningTime));
-                meow(cpudata, runningprocess);
+                cpucalculations(perfdata, runningprocess);
                 free(runningprocess);
                 currentprocessdone=true;
             }
