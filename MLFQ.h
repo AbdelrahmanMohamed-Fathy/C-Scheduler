@@ -94,8 +94,6 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum)
                     continue;
                 }
             }
-            
-
         }
         else
         {
@@ -103,7 +101,8 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum)
             bool Found = false;
             for (int i = CurrentQueue; i >= 0; i--)
             {
-                if(PriDequeue(queues[CurrentQueue],&runningProcess))
+                queueCounts[i] = queues[i]->count;
+                if(PriDequeue(queues[i],&runningProcess))
                 {
                     Found = true;
                     break;
