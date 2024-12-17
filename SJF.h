@@ -54,7 +54,7 @@ void SJF(FILE *OutputFile,int ProcessMessageQueue)
                 {
                     currentlyrunningproc->EndTime=getClk();
                     currentlyrunningproc->RemainingTime=0;
-                    fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %d\n",currentlyrunningproc->EndTime , currentlyrunningproc->generationID, currentlyrunningproc->ArrivalTime, currentlyrunningproc->RunningTime, currentlyrunningproc->RemainingTime,currentlyrunningproc->WaitTime,currentlyrunningproc->EndTime - currentlyrunningproc->ArrivalTime,(currentlyrunningproc->EndTime - currentlyrunningproc->ArrivalTime) / currentlyrunningproc->RunningTime);
+                    fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %f WTA %f\n",currentlyrunningproc->EndTime , currentlyrunningproc->generationID, currentlyrunningproc->ArrivalTime, currentlyrunningproc->RunningTime, currentlyrunningproc->RemainingTime,currentlyrunningproc->WaitTime,currentlyrunningproc->EndTime - currentlyrunningproc->ArrivalTime,(currentlyrunningproc->EndTime - currentlyrunningproc->ArrivalTime) / currentlyrunningproc->RunningTime);
                     free(currentlyrunningproc);
                     currentlyrunningproc=NULL;
                     continue;
