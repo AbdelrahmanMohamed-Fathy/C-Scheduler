@@ -47,17 +47,13 @@ debugMLFQ:
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes bin/process_generator.out processes.txt -sch 4 -q 2 -d
 
 runTestSJF:
-	./bin/test_generator.out
 	./bin/process_generator.out testcase.txt -sch 1 -q 2
 
 runTestHPF:
-	./bin/test_generator.out
 	./bin/process_generator.out testcase.txt -sch 2 -q 2
 
 runTestRR:
-	./bin/test_generator.out
 	./bin/process_generator.out testcase.txt -sch 3 -q 2
 
 runTestMLFQ:
-	./bin/test_generator.out
 	./bin/process_generator.out testcase.txt -sch 4 -q 2
