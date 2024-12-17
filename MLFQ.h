@@ -4,7 +4,6 @@
 
 #define NUM_QUEUES 11 // Number of priority levels
 priQueue *queues[NUM_QUEUES];
-int queueCounts[NUM_QUEUES];
 PCB *runningProcess;
 PCB *newProcess;
 
