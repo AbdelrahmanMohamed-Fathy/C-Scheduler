@@ -2,7 +2,7 @@
 #include "DataStructures/CircularQueue.h"
 #include "PCB.h"
 
-void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum )
+void RR(FILE *OutputFile, int ProcessMessageQueue, int quantum )
 {
     int wait_time=0;
     //bool emptyqueueflag;
@@ -99,8 +99,8 @@ void RR(FILE * OutputFile, int ProcessMessageQueue, int quantum )
                     runningprocess->RemainingTime = 0;
                     runningprocess->Running = false;
                     runningprocess->WaitTime = runningprocess->EndTime - runningprocess->StartTime - runningprocess->RunningTime + runningprocess->RemainingTime;
-                    fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %d\n",runningprocess->EndTime , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime,runningprocess->EndTime - runningprocess->ArrivalTime,(runningprocess->EndTime - runningprocess->ArrivalTime) / runningprocess->RunningTime);
-                    printf("At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %d\n",runningprocess->EndTime , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime,runningprocess->EndTime - runningprocess->ArrivalTime,(runningprocess->EndTime - runningprocess->ArrivalTime) / runningprocess->RunningTime);
+                    fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %f WTA %f\n",runningprocess->EndTime , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime,runningprocess->EndTime - runningprocess->ArrivalTime,(runningprocess->EndTime - runningprocess->ArrivalTime) / runningprocess->RunningTime);
+                    printf("At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n",runningprocess->EndTime , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime,runningprocess->EndTime - runningprocess->ArrivalTime,(runningprocess->EndTime - runningprocess->ArrivalTime) / runningprocess->RunningTime);
                     meow(cpudata, runningprocess);
                 }   
                 
