@@ -4,7 +4,6 @@
 
 #define NUM_QUEUES 11 // Number of priority levels
 priQueue *queues[NUM_QUEUES];
-int queueCounts[NUM_QUEUES];
 PCB *runningProcess;
 PCB *newProcess;
 
@@ -80,7 +79,7 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
                         runningProcess->EndTime = getClk();
                         runningProcess->RemainingTime -= GivenQuantum;
                         runningProcess->Running = false;
-                        cpucalculations(perfdata, runningprocess);
+                        cpucalculations(perfdata, runningProcess);
                         fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d\n", runningProcess->EndTime, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
                         free(runningProcess);
                         runningProcess = NULL;
