@@ -4,6 +4,7 @@
 
 #define NUM_QUEUES 11 // Number of priority levels
 priQueue *queues[NUM_QUEUES];
+int queueCounts[NUM_QUEUES];
 PCB *runningProcess;
 PCB *newProcess;
 
@@ -58,16 +59,17 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum)
             newProcess->WaitTime = 0;
             newProcess->Running = false;
             PriEnqueue(queues[newProcess->Priority], &newProcess, newProcess->ArrivalTime);
+            fprintf(OutputFile, "#process with id=%d arrived at clock=%d and running time=%d \n", newProcess->generationID, newProcess->ArrivalTime, newProcess->RunningTime);
             newProcess = NULL;
             //printf("#process with id=%d arrived at clock=%d and running time=%d \n", newProcess->generationID, newProcess->ArrivalTime, newProcess->RunningTime);
-            fprintf(OutputFile, "#process with id=%d arrived at clock=%d and running time=%d \n", newProcess->generationID, newProcess->ArrivalTime, newProcess->RunningTime);
         }
         
         if(runningProcess)
         {
             //handling already running process
-            if (getClk() - runningProcessStart + GivenQuantum > 0)
+            if (runningProcessStart + GivenQuantum - getClk() > 0)
                 continue;
+
             else 
             {
                 if (waitpid(runningProcess->ID, NULL, WNOHANG) == runningProcess->ID) //Since I expect it to happen, I wait for process termination
@@ -95,7 +97,7 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum)
             
 
         }
-        else if (!queuesEmpty)
+        else
         {
             //handling no running process
             bool Found = false;
@@ -121,24 +123,29 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum)
                     runningProcess->ID = fork();
                     if (runningProcess->ID == 0)
                     {
+                        //Child
                         char runtime[4];
                         sprintf(runtime, "%d", runningProcess->RunningTime);
                         execl("bin/process.out", "./process.out", runtime, NULL);
                     }
                     else
                     {
+                        //setting up PCB for first start
                         runningProcess->StartTime = getClk();
                         runningProcessStart = runningProcess->StartTime;
                         runningProcess->Running = true;
                         runningProcess->WaitTime = runningProcess->StartTime - runningProcess->ArrivalTime;
-                        GivenQuantum = (runningProcess->RemainingTime>=quantum) ? (quantum) : (runningProcess->RemainingTime);
+                        GivenQuantum = (runningProcess->RemainingTime<=quantum) ? (runningProcess->RemainingTime) : (quantum); 
+                        fprintf(OutputFile, "At time %d process %d started arr %d total %d remain %d wait %d\n", runningProcess->StartTime, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
                     }
                 }
                 else
                 {
+                    //process already started but stopped
                     runningProcessStart = getClk();
                     kill(runningProcess->ID, SIGCONT);
                     runningProcess->Running = true;
+
                     runningProcess->WaitTime = runningProcess->StartTime - runningProcess->ArrivalTime + runningProcess->RunningTime - runningProcess->RemainingTime;
                     GivenQuantum = (runningProcess->RemainingTime>=quantum) ? (quantum) : (runningProcess->RemainingTime);
                     fprintf(OutputFile, "At time %d process %d resumed arr %d total %d remain %d wait %d\n", runningProcessStart, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime); 
@@ -148,7 +155,7 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum)
 
         }
     }
-    for (int i = 0; i < 11; i++)
+    for (int i = 0; i < NUM_QUEUES; i++)
     {
         free(queues[i]);
     }

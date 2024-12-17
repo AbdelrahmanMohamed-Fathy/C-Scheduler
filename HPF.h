@@ -64,8 +64,8 @@ void HPF(FILE *OutputFile, int ProcessArrivalQueue)
             else if (ReadyQueue->front && CurrentRunningProcess->Priority > ReadyQueue->front->priority)
             {
                 // handling higher priority switch
-                int now = getClk();
                 kill(CurrentRunningProcess->ID, SIGTSTP);
+                int now = getClk();
                 CurrentRunningProcess->RemainingTime -= (now - CurrentRunningProcessStart);
                 CurrentRunningProcess->Running = false;
                 fprintf(OutputFile, "At time %d process %d stopped arr %d total %d remain %d wait %d\n", now, CurrentRunningProcess->generationID, CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
@@ -109,8 +109,8 @@ void HPF(FILE *OutputFile, int ProcessArrivalQueue)
             {
                 // handling process that already started but didnt finish
                 CurrentRunningProcessStart = getClk();
-                CurrentRunningProcess->WaitTime = CurrentRunningProcess->StartTime - CurrentRunningProcess->ArrivalTime + CurrentRunningProcess->RunningTime - CurrentRunningProcess->RemainingTime;
                 kill(CurrentRunningProcess->ID, SIGCONT);
+                CurrentRunningProcess->WaitTime =CurrentRunningProcessStart - CurrentRunningProcess->StartTime - CurrentRunningProcess->RunningTime + CurrentRunningProcess->RemainingTime;
                 CurrentRunningProcess->Running = true;
                 fprintf(OutputFile, "At time %d process %d resumed arr %d total %d remain %d wait %d\n", CurrentRunningProcessStart, CurrentRunningProcess->generationID, CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
                 continue;
