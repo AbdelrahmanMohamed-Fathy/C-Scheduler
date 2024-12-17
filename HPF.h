@@ -110,7 +110,7 @@ void HPF(FILE *OutputFile, int ProcessArrivalQueue, cpuData* perfdata)
                 // handling process that already started but didnt finish
                 CurrentRunningProcessStart = getClk();
                 kill(CurrentRunningProcess->ID, SIGCONT);
-                CurrentRunningProcess->WaitTime =CurrentRunningProcessStart - CurrentRunningProcess->StartTime - CurrentRunningProcess->RunningTime + CurrentRunningProcess->RemainingTime;
+                CurrentRunningProcess->WaitTime = CurrentRunningProcessStart - CurrentRunningProcess->StartTime - CurrentRunningProcess->RunningTime + CurrentRunningProcess->RemainingTime;
                 CurrentRunningProcess->Running = true;
                 fprintf(OutputFile, "At time %d process %d resumed arr %d total %d remain %d wait %d\n", CurrentRunningProcessStart, CurrentRunningProcess->generationID, CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
                 continue;
