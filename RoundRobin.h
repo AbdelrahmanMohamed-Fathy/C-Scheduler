@@ -69,6 +69,19 @@ void RR(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfdat
                 runningprocess->StartTime = getClk();
                 runningprocess->Running = true;
             }
+            if(runningprocess->RunningTime==0){
+                runningprocess->EndTime = getClk();
+                runningprocess->RemainingTime = 0;
+                runningprocess->Running = false;
+                runningprocess->WaitTime = runningprocess->EndTime - runningprocess->StartTime - runningprocess->RunningTime + runningprocess->RemainingTime;
+                fprintf(OutputFile, "At time %d process %d started arr %d total %d remain %d wait %d\n",getClk() , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
+                printf("At time %d process %d started arr %d total %d remain %d wait %d\n",getClk() , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
+                fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n",runningprocess->EndTime , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime,runningprocess->EndTime - runningprocess->ArrivalTime,(runningprocess->EndTime - runningprocess->ArrivalTime) / (float)(runningprocess->RunningTime));
+                printf("At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n",runningprocess->EndTime , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime,runningprocess->EndTime - runningprocess->ArrivalTime,(runningprocess->EndTime - runningprocess->ArrivalTime) / (float)(runningprocess->RunningTime));
+                meow(cpudata, runningprocess);
+                free(runningprocess);
+                currentprocessdone=true;
+            }
             if (runningprocess->RemainingTime <= quantum)
             {
                 //if the process will finish in the current quantum
