@@ -2,6 +2,9 @@
 #include "DataStructures/CircularQueue.h"
 #include "PCB.h"
 
+PCB *runningprocess = NULL;
+PCB *newProcess;
+CircQueue *RRqueue;
 void RR(FILE *OutputFile, int ProcessMessageQueue, int quantum )
 {
     int wait_time=0;
@@ -11,9 +14,9 @@ void RR(FILE *OutputFile, int ProcessMessageQueue, int quantum )
     bool firsttime =true;
     int time;
     msg RRmsg;
-    CircQueue *RRqueue = CreatecircQueue();
-    PCB *runningprocess = NULL;
-    PCB *newProcess;
+    RRqueue=CreatecircQueue();
+    
+    
     cpuData* cpudata;
     while (!isCircQueueEmpty(RRqueue) || !messagesdone || runningprocess)
     {
@@ -157,4 +160,19 @@ void RR(FILE *OutputFile, int ProcessMessageQueue, int quantum )
     }
     printf("RR done");
     free(RRqueue);
+}
+
+void RRFree(){
+    PCB* Dummy;
+    if (RRqueue)
+    {
+        while (CircDequeue(RRqueue,&Dummy))
+            free(Dummy);
+        free(RRqueue);
+    }
+    if (runningprocess)
+        free(runningprocess);
+    if (newProcess)
+        free(runningprocess);
+    return;
 }
