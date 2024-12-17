@@ -66,7 +66,7 @@ void clearResources(int signum)
         HPFFree();
         break;
     case Round_Robin:
-        //RRFree();
+        RRFree();
         break;
     case Multiple_Level_Feedback_Loop:
         MLFQFree();

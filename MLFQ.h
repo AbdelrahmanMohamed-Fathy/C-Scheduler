@@ -32,7 +32,7 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
         queuesEmpty = true;
         for (int i = 0; i < NUM_QUEUES; i++)
         {
-            if (!queues[i]->front)
+            if (queues[i]->front)
             {
                 queuesEmpty = false;
                 break;
@@ -61,6 +61,7 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
             PriEnqueue(queues[newProcess->Priority], &newProcess, newProcess->ArrivalTime);
             fprintf(OutputFile, "#process with id=%d arrived at clock=%d and running time=%d \n", newProcess->generationID, newProcess->ArrivalTime, newProcess->RunningTime);
             newProcess = NULL;
+            queuesEmpty = false;
             //printf("#process with id=%d arrived at clock=%d and running time=%d \n", newProcess->generationID, newProcess->ArrivalTime, newProcess->RunningTime);
         }
         
@@ -72,21 +73,26 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
 
             else 
             {
-                if (waitpid(runningProcess->ID, NULL, WNOHANG) == runningProcess->ID) //Since I expect it to happen, I wait for process termination
+                if (quantum > GivenQuantum)
                 {
-                    runningProcess->EndTime = getClk();
-                    runningProcess->RemainingTime -= GivenQuantum;
-                    runningProcess->Running = false;
-                    fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d\n", runningProcess->EndTime, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
-                    free(runningProcess);
-                    runningProcess = NULL;
-                    continue;
+                    if (waitpid(runningProcess->ID, NULL, 0) == runningProcess->ID)
+                    {
+                        runningProcess->EndTime = getClk();
+                        runningProcess->RemainingTime -= GivenQuantum;
+                        runningProcess->Running = false;
+                        fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d\n", runningProcess->EndTime, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
+                        free(runningProcess);
+                        runningProcess = NULL;
+                        continue;
+                    }
                 }
                 else
                 {
                     int now = getClk();
-                    PriEnqueue(queues[runningProcess->Priority],&runningProcess,now);
                     kill(runningProcess->ID,SIGTSTP);
+                    PriEnqueue(queues[(runningProcess->Priority + 1 > 10) ? (10) : (runningProcess->Priority+1)],&runningProcess,now);
+                    queuesEmpty = false;
+                    runningProcess->Priority = (runningProcess->Priority + 1 > 10) ? (10) : (runningProcess->Priority+1);
                     runningProcess->Running = false;
                     runningProcess->RemainingTime -= GivenQuantum;
                     fprintf(OutputFile, "At time %d process %d stopped arr %d total %d remain %d wait %d\n", now, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
@@ -99,9 +105,8 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
         {
             //handling no running process
             bool Found = false;
-            for (int i = CurrentQueue; i >= 0; i--)
+            for (int i = 0; i < NUM_QUEUES; i++)
             {
-                queueCounts[i] = queues[i]->count;
                 if(PriDequeue(queues[i],&runningProcess))
                 {
                     Found = true;
@@ -144,9 +149,8 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
                     runningProcessStart = getClk();
                     kill(runningProcess->ID, SIGCONT);
                     runningProcess->Running = true;
-
                     runningProcess->WaitTime = runningProcess->StartTime - runningProcess->ArrivalTime + runningProcess->RunningTime - runningProcess->RemainingTime;
-                    GivenQuantum = (runningProcess->RemainingTime>=quantum) ? (quantum) : (runningProcess->RemainingTime);
+                    GivenQuantum = (runningProcess->RemainingTime<=quantum) ? (runningProcess->RemainingTime) : (quantum);
                     fprintf(OutputFile, "At time %d process %d resumed arr %d total %d remain %d wait %d\n", runningProcessStart, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime); 
                 }
 

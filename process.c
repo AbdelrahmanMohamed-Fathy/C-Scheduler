@@ -43,6 +43,6 @@ void stop(int signum)
 {
     printf("%d %d\n", remainingtime, prevTime);
     if (remainingtime != prevTime)
-        remainingtime++;
+        remainingtime--;
     raise(SIGSTOP);
 }
