@@ -44,12 +44,13 @@ void SJF(FILE *OutputFile,int ProcessMessageQueue)
             else
             {
                 currentlyrunningproc->StartTime=getClk();
+                currentlyrunningproc->WaitTime = currentlyrunningproc->StartTime - currentlyrunningproc->ArrivalTime;
                 fprintf(OutputFile, "At time %d process %d started arr %d total %d remain %d wait %d\n", currentlyrunningproc->StartTime, currentlyrunningproc->generationID, currentlyrunningproc->ArrivalTime, currentlyrunningproc->RunningTime, currentlyrunningproc->RemainingTime, currentlyrunningproc->WaitTime);
                 if(waitpid(currentlyrunningproc->ID, NULL, 0) != -1)
                 {
                     currentlyrunningproc->EndTime=getClk();
                     currentlyrunningproc->RemainingTime=0;
-                    fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d\n", currentlyrunningproc->EndTime, currentlyrunningproc->generationID, currentlyrunningproc->ArrivalTime, currentlyrunningproc->RunningTime, currentlyrunningproc->RemainingTime, currentlyrunningproc->WaitTime);
+                    fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %d\n",currentlyrunningproc->EndTime , currentlyrunningproc->generationID, currentlyrunningproc->ArrivalTime, currentlyrunningproc->RunningTime, currentlyrunningproc->RemainingTime,currentlyrunningproc->WaitTime,currentlyrunningproc->EndTime - currentlyrunningproc->ArrivalTime,(currentlyrunningproc->EndTime - currentlyrunningproc->ArrivalTime) / currentlyrunningproc->RunningTime);
                     free(currentlyrunningproc);
                     currentlyrunningproc=NULL;
                     continue;
