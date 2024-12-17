@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
         MLFQ(OutputFile, ProcessMessageQueue, Quantum, &PreformanceData);
         break;
     }
-    fprintf(perffile, "CPU utilization = %f\% \nAvg WTA =  %f \nAvg Waiting = %f \n",PreformanceData.util , PreformanceData.AvgWeightedTurnaroundTime, PreformanceData.AvgWaitTime);
+    fprintf(perffile, "CPU utilization = %.2f%%  \nAvg WTA =  %f \nAvg Waiting = %f \n",PreformanceData.util , PreformanceData.AvgWeightedTurnaroundTime, PreformanceData.AvgWaitTime);
 
     fclose(OutputFile);
     fclose(perffile);
