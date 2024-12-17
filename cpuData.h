@@ -16,7 +16,7 @@ void cpucalculations(cpuData* cpudata, PCB* process){
     cpudata->Count++;
     cpudata->TotalWaitTime += process->WaitTime;
     cpudata->totalRunTime += process->RunningTime;
-    cpudata->AvgWaitTime = cpudata->TotalWaitTime / cpudata->Count;
+    cpudata->AvgWaitTime = cpudata->TotalWaitTime /(float)cpudata->Count;
     cpudata->totalWTA +=(process->EndTime - process->ArrivalTime)/(float)process->RunningTime;
     cpudata->AvgWeightedTurnaroundTime = cpudata->totalWTA/cpudata->Count;
     cpudata->util = (cpudata->totalRunTime)/(float)(process->EndTime)*100;

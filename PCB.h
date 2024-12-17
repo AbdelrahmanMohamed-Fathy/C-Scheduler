@@ -11,6 +11,7 @@ typedef struct PCB
     int ArrivalTime;
     int RunningTime;
     int RemainingTime;
+    int lastend;
 
     // cpu stats
     int StartTime;
