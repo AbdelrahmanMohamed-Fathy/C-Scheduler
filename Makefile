@@ -53,7 +53,7 @@ runTestHPF:
 	./bin/process_generator.out testcase.txt -sch 2 -q 2
 
 runTestRR:
-	./bin/process_generator.out testcase.txt -sch 3 -q 2
+	./bin/process_generator.out testcase.txt -sch 3 -q 5
 
 runTestMLFQ:
 	./bin/process_generator.out testcase.txt -sch 4 -q 5
