@@ -132,7 +132,7 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
                     PriEnqueue(queues[targetProcess->Priority], &targetProcess, getClk());
                 }
             }
-            ol Found = false;
+            bool Found = false;
             for (int i = 0; i < NUM_QUEUES; i++)
             {
                 if(PriDequeue(queues[i],&runningProcess))
