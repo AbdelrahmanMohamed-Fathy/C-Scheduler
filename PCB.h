@@ -18,6 +18,9 @@ typedef struct PCB
     int EndTime;
     int WaitTime;
 
+    //MLFQ special
+    int originalPriority;
+
     bool Running;
 
 } PCB;

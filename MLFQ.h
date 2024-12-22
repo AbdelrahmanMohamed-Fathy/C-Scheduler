@@ -50,6 +50,7 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
             newProcess->generationID = MLFQmsg.data.id;
             newProcess->ID = -1;
             newProcess->Priority = MLFQmsg.data.priority;
+            newProcess->originalPriority = MLFQmsg.data.priority;
             newProcess->ArrivalTime = MLFQmsg.data.arrivaltime;
             newProcess->RunningTime = MLFQmsg.data.runningtime;
             newProcess->RemainingTime = MLFQmsg.data.runningtime;
@@ -72,10 +73,13 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
 
             else 
             {
-                if (quantum > GivenQuantum)
+                if (runningProcess->RemainingTime <= GivenQuantum)
                 {
+                    printf("trying to exit1\n");
+                    printf("Attempting to end process %d, remaining time is %d\n", runningProcess->generationID, runningProcess->RemainingTime);
                     if (waitpid(runningProcess->ID, NULL, 0) == runningProcess->ID)
                     {
+                        printf("trying to exit2\n");
                         runningProcess->EndTime = getClk();
                         runningProcess->RemainingTime -= GivenQuantum;
                         runningProcess->Running = false;
@@ -104,7 +108,31 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
         else
         {
             //handling no running process
-            bool Found = false;
+            bool topQueuesEmpty = true;
+            for (int i = 0; i < NUM_QUEUES-1; i++) //Handling returning processes to their original levels
+            { 
+                if (!isPriQueueEmpty(queues[i]))
+                {
+                    topQueuesEmpty = false;
+                    break;
+                }
+            }
+            if (topQueuesEmpty && !isPriQueueEmpty(queues[NUM_QUEUES-1]))
+            {
+                PCB* targetProcess = NULL;
+                for (int i = 0; i < queues[NUM_QUEUES-1]->count; i++)
+                {
+                    PriDequeue(queues[NUM_QUEUES-1],&targetProcess);
+                    if (targetProcess->originalPriority != targetProcess->Priority)
+                    {
+                        fprintf(OutputFile, "#Process with ID %d was restored to it's original level %d, was at %d\n",targetProcess->generationID, targetProcess->originalPriority, targetProcess->Priority);
+                        printf("#At time %d, Process with ID %d was restored to it's original level %d, was at %d, remaining time %d\n",getClk(), targetProcess->generationID, targetProcess->originalPriority, targetProcess->Priority, targetProcess->RemainingTime);
+                        targetProcess->Priority = targetProcess->originalPriority;
+                    }
+                    PriEnqueue(queues[targetProcess->Priority], &targetProcess, getClk());
+                }
+            }
+            ol Found = false;
             for (int i = 0; i < NUM_QUEUES; i++)
             {
                 if(PriDequeue(queues[i],&runningProcess))
@@ -149,7 +177,7 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
                     runningProcessStart = getClk();
                     kill(runningProcess->ID, SIGCONT);
                     runningProcess->Running = true;
-                    runningProcess->WaitTime = runningProcess->StartTime - runningProcess->ArrivalTime + runningProcess->RunningTime - runningProcess->RemainingTime;
+                    runningProcess->WaitTime = runningProcessStart - runningProcess->StartTime - runningProcess->RunningTime + runningProcess->RemainingTime;
                     GivenQuantum = (runningProcess->RemainingTime<=quantum) ? (runningProcess->RemainingTime) : (quantum);
                     fprintf(OutputFile, "At time %d process %d resumed arr %d total %d remain %d wait %d\n", runningProcessStart, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime); 
                 }

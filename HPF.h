@@ -51,6 +51,7 @@ void HPF(FILE *OutputFile, int ProcessArrivalQueue, cpuData* perfdata)
             // handling already running process
             if (waitpid(CurrentRunningProcess->ID, NULL, WNOHANG) == CurrentRunningProcess->ID)
             {
+                
                 // handling process termination
                 CurrentRunningProcess->EndTime = getClk();
                 CurrentRunningProcess->RemainingTime -= (CurrentRunningProcess->EndTime - CurrentRunningProcessStart);
