@@ -11,8 +11,8 @@ typedef struct TreeNode
     int Size;
     bool Allocated;
     MemLocation Location;
-    TreeNode *LeftNode;
-    TreeNode *RightNode;
+    struct TreeNode *LeftNode;
+    struct TreeNode *RightNode;
 } TreeNode;
 
 typedef struct MemTree
@@ -20,17 +20,7 @@ typedef struct MemTree
     TreeNode *Root;
 } MemTree;
 
-MemTree *CreateMemTree()
-{
-    MemTree *newTree = (MemTree *)malloc(sizeof(MemTree));
-    MemLocation Location;
-    Location.Start = 0;
-    Location.End = 1023;
-    newTree->Root = CreateNode(1024, Location);
-    return newTree;
-}
-
-TreeNode *CreateNode(int Size, MemLocation Location)
+TreeNode *CreateTreeNode(int Size, MemLocation Location)
 {
     TreeNode *newNode = (TreeNode *)malloc(sizeof(TreeNode));
     newNode->Size = Size;
@@ -42,104 +32,121 @@ TreeNode *CreateNode(int Size, MemLocation Location)
     return newNode;
 }
 
+MemTree *CreateMemTree()
+{
+    MemTree *newTree = (MemTree *)malloc(sizeof(MemTree));
+    MemLocation Location;
+    Location.Start = 0;
+    Location.End = 1023;
+    newTree->Root = CreateTreeNode(1024, Location);
+    return newTree;
+}
+
+// DO NOT USE THIS FUNCTION DIRECTLY USE THE ONE BELOW
+MemLocation *RecursiveAllocate(TreeNode *treeNode, int ProcessSize)
+{
+    MemLocation *AllocatedLocation = NULL;
+    // Recursive calls
+    if (treeNode->LeftNode)
+        AllocatedLocation = RecursiveAllocate(treeNode->LeftNode, ProcessSize);
+
+    if (AllocatedLocation)
+        return AllocatedLocation;
+
+    if (treeNode->RightNode)
+        AllocatedLocation = RecursiveAllocate(treeNode->RightNode, ProcessSize);
+
+    if (treeNode->LeftNode || treeNode->RightNode)
+        return AllocatedLocation;
+    // Base case if no recursion possible (No branches)
+    if (treeNode->Allocated == true)
+        return NULL;
+
+    if (ProcessSize > treeNode->Size)
+        return NULL;
+
+    if (ProcessSize <= (treeNode->Size) / 2)
+    {
+        MemLocation LeftLocation;
+        LeftLocation.Start = treeNode->Location.Start;
+        LeftLocation.End = treeNode->Location.End / 2;
+        treeNode->LeftNode = CreateTreeNode((treeNode->Size) / 2, LeftLocation);
+
+        MemLocation RightLocation;
+        RightLocation.Start = (treeNode->Location.End / 2) + 1;
+        RightLocation.End = treeNode->Location.End;
+        treeNode->RightNode = CreateTreeNode((treeNode->Size) / 2, RightLocation);
+
+        return RecursiveAllocate(treeNode->LeftNode, ProcessSize);
+    }
+    else
+    {
+        treeNode->Allocated = true;
+        return &treeNode->Location;
+    }
+}
+
 MemLocation *TreeAllocate(MemTree *Tree, int Size)
 {
     return RecursiveAllocate(Tree->Root, Size);
 }
 
-// DO NOT USE THIS FUNCTION MANUALLY USE THE ONE ABOVE
-MemLocation *RecursiveAllocate(TreeNode *Node, int ProcessSize)
+void AttemptCombine(TreeNode *treeNode)
 {
-    MemLocation *AllocatedLocation = NULL;
-    // Recursive calls
-    if (Node->LeftNode)
-        AllocatedLocation = RecursiveAllocate(Node->LeftNode, ProcessSize);
-
-    if (AllocatedLocation)
-        return AllocatedLocation;
-
-    if (Node->RightNode)
-        AllocatedLocation = RecursiveAllocate(Node->LeftNode, ProcessSize);
-
-    if (Node->LeftNode || Node->RightNode)
-        return AllocatedLocation;
-    // Base case if no recursion possible (No branches)
-    if (Node->Allocated == true)
-        return NULL;
-
-    if (ProcessSize > Node->Size)
-        return NULL;
-
-    if (ProcessSize <= (Node->Size) / 2)
+    if (!treeNode->LeftNode->LeftNode && !treeNode->RightNode->RightNode && treeNode->LeftNode->Allocated == false && treeNode->RightNode->Allocated == false)
     {
-        MemLocation LeftLocation;
-        LeftLocation.Start = Node->Location.Start;
-        LeftLocation.End = Node->Location.End / 2;
-        Node->LeftNode = CreateNode((Node->Size) / 2, LeftLocation);
-
-        MemLocation RightLocation;
-        RightLocation.Start = (Node->Location.End / 2) + 1;
-        RightLocation.End = Node->Location.End;
-        Node->RightNode = CreateNode((Node->Size) / 2, RightLocation);
-
-        return RecursiveAllocate(Node->LeftNode, ProcessSize);
-    }
-    else
-    {
-        Node->Allocated = true;
-        return &Node->Location;
+        free(treeNode->LeftNode);
+        free(treeNode->RightNode);
+        treeNode->LeftNode = NULL;
+        treeNode->RightNode = NULL;
     }
 }
 
-void AttemptCombine(TreeNode *Node)
-{
-    if (!Node->LeftNode->LeftNode && !Node->RightNode->RightNode && Node->LeftNode->Allocated == false && Node->RightNode->Allocated == false)
-    {
-        free(Node->LeftNode);
-        free(Node->RightNode);
-        Node->LeftNode = NULL;
-        Node->RightNode = NULL;
-    }
-}
-
-bool TreeFree(MemTree *Tree, MemLocation Location)
-{
-    return RecursiveFree(Tree->Root, Location);
-}
-
-bool RecursiveFree(TreeNode *Node, MemLocation Location)
+// DO NOT USE THIS FUNCTION DIRECTLY USE THE ONE BELOW
+bool RecursiveFree(TreeNode *treeNode, int Location)
 {
     // Recursive calls
     bool LeftFound = false;
-    if (Node->LeftNode)
-        LeftFound = RecursiveFree(Node->LeftNode, Location);
+    if (treeNode->LeftNode)
+        LeftFound = RecursiveFree(treeNode->LeftNode, Location);
 
     if (LeftFound)
     {
-        Node->LeftNode->Allocated = false;
-        AttemptCombine(Node);
+        treeNode->LeftNode->Allocated = false;
+        AttemptCombine(treeNode);
         return true;
     }
 
     bool RightFound = false;
-    if (Node->RightNode)
-        RightFound = RecursiveFree(Node->RightNode, Location);
+    if (treeNode->RightNode)
+        RightFound = RecursiveFree(treeNode->RightNode, Location);
 
     if (RightFound)
     {
-        Node->RightNode->Allocated = false;
-        AttemptCombine(Node);
+        treeNode->RightNode->Allocated = false;
+        AttemptCombine(treeNode);
         return true;
     }
 
-    if (Node->LeftNode || Node->RightNode)
+    if (treeNode->LeftNode || treeNode->RightNode)
     {
         return false;
     }
 
     // Without branches case
-    if (Node->Location.Start = Location.Start)
+    if (treeNode->Location.Start = Location)
         return true;
     else
         return false;
+}
+
+bool TreeFree(MemTree *Tree, int Location)
+{
+    return RecursiveFree(Tree->Root, Location);
+}
+
+void DeleteTree(MemTree *Tree)
+{
+    // TODO delete nodes
+    free(Tree);
 }
