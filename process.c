@@ -28,6 +28,7 @@ int main(int agrc, char *argv[])
             prevTime = remainingtime;
         atomic_fetch_sub(&remainingtime,1);
         time = getClk();
+        printf("%d\n", remainingtime);
     }
 
     destroyClk(false);

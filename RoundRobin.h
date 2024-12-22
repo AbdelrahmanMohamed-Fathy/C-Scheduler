@@ -87,7 +87,7 @@ void RR(FILE *OutputFile, int ProcessMessageQueue, int quantum,cpuData* cpudata 
                 if(currentprocessdone || firsttime){
                     if(firsttime)
                         time = getClk();
-                    wait_time = (time + quantum) - getClk();
+                    wait_time = (time + runningprocess->RemainingTime) - getClk();;
                     if(runningprocess->RemainingTime == runningprocess->RunningTime){
                         fprintf(OutputFile, "At time %d process %d started arr %d total %d remain %d wait %d\n",getClk() , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
                         printf("At time %d process %d started arr %d total %d remain %d wait %d\n",getClk() , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
@@ -98,7 +98,7 @@ void RR(FILE *OutputFile, int ProcessMessageQueue, int quantum,cpuData* cpudata 
                     }
                         
                 }
-                wait_time = (time + quantum) - getClk();
+                wait_time = (time + quantum) - getClk();;
                 if (wait_time > 0)
                 {
                     currentprocessdone=false;
