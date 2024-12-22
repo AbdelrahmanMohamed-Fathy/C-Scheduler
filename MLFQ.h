@@ -7,8 +7,6 @@ priQueue *queues[NUM_QUEUES];
 PCB *runningProcess;
 PCB *newProcess;
 
-
-
 void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfdata)
 {
     for (int i = 0; i < NUM_QUEUES; i++)
@@ -20,7 +18,7 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
     int runningProcessStart;
     int CurrentQueue = 0;
     int StartQueue = 0;
-    int GivenQuantum;   
+    int GivenQuantum;
     bool messagesdone = false;
     bool queuesEmpty = true;
     runningProcess = NULL;
@@ -62,16 +60,16 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
             fprintf(OutputFile, "#process with id=%d arrived at clock=%d and running time=%d \n", newProcess->generationID, newProcess->ArrivalTime, newProcess->RunningTime);
             newProcess = NULL;
             queuesEmpty = false;
-            //printf("#process with id=%d arrived at clock=%d and running time=%d \n", newProcess->generationID, newProcess->ArrivalTime, newProcess->RunningTime);
+            // printf("#process with id=%d arrived at clock=%d and running time=%d \n", newProcess->generationID, newProcess->ArrivalTime, newProcess->RunningTime);
         }
-        
-        if(runningProcess)
+
+        if (runningProcess)
         {
-            //handling already running process
+            // handling already running process
             if (runningProcessStart + GivenQuantum - getClk() > 0)
                 continue;
 
-            else 
+            else
             {
                 if (runningProcess->RemainingTime <= GivenQuantum)
                 {
@@ -93,49 +91,49 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
                 else
                 {
                     int now = getClk();
-                    kill(runningProcess->ID,SIGTSTP);
-                    PriEnqueue(queues[(runningProcess->Priority + 1 > 10) ? (10) : (runningProcess->Priority+1)],&runningProcess,now);
+                    kill(runningProcess->ID, SIGTSTP);
+                    PriEnqueue(queues[(runningProcess->Priority + 1 > 10) ? (10) : (runningProcess->Priority + 1)], &runningProcess, now);
                     queuesEmpty = false;
-                    runningProcess->Priority = (runningProcess->Priority + 1 > 10) ? (10) : (runningProcess->Priority+1);
+                    runningProcess->Priority = (runningProcess->Priority + 1 > 10) ? (10) : (runningProcess->Priority + 1);
                     runningProcess->Running = false;
                     runningProcess->RemainingTime -= GivenQuantum;
                     fprintf(OutputFile, "At time %d process %d stopped arr %d total %d remain %d wait %d\n", now, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
-                    runningProcess=NULL;
+                    runningProcess = NULL;
                     continue;
                 }
             }
         }
         else
         {
-            //handling no running process
+            // handling no running process
             bool topQueuesEmpty = true;
-            for (int i = 0; i < NUM_QUEUES-1; i++) //Handling returning processes to their original levels
-            { 
+            for (int i = 0; i < NUM_QUEUES - 1; i++) // Handling returning processes to their original levels
+            {
                 if (!isPriQueueEmpty(queues[i]))
                 {
                     topQueuesEmpty = false;
                     break;
                 }
             }
-            if (topQueuesEmpty && !isPriQueueEmpty(queues[NUM_QUEUES-1]))
+            if (topQueuesEmpty && !isPriQueueEmpty(queues[NUM_QUEUES - 1]))
             {
-                PCB* targetProcess = NULL;
-                for (int i = 0; i < queues[NUM_QUEUES-1]->count; i++)
+                PCB *targetProcess = NULL;
+                for (int i = 0; i < queues[NUM_QUEUES - 1]->count; i++)
                 {
-                    PriDequeue(queues[NUM_QUEUES-1],&targetProcess);
+                    PriDequeue(queues[NUM_QUEUES - 1], &targetProcess);
                     if (targetProcess->originalPriority != targetProcess->Priority)
                     {
-                        fprintf(OutputFile, "#Process with ID %d was restored to it's original level %d, was at %d\n",targetProcess->generationID, targetProcess->originalPriority, targetProcess->Priority);
-                        printf("#At time %d, Process with ID %d was restored to it's original level %d, was at %d, remaining time %d\n",getClk(), targetProcess->generationID, targetProcess->originalPriority, targetProcess->Priority, targetProcess->RemainingTime);
+                        fprintf(OutputFile, "#Process with ID %d was restored to it's original level %d, was at %d\n", targetProcess->generationID, targetProcess->originalPriority, targetProcess->Priority);
+                        printf("#At time %d, Process with ID %d was restored to it's original level %d, was at %d, remaining time %d\n", getClk(), targetProcess->generationID, targetProcess->originalPriority, targetProcess->Priority, targetProcess->RemainingTime);
                         targetProcess->Priority = targetProcess->originalPriority;
                     }
                     PriEnqueue(queues[targetProcess->Priority], &targetProcess, getClk());
                 }
             }
-            ol Found = false;
+            bool Found = false;
             for (int i = 0; i < NUM_QUEUES; i++)
             {
-                if(PriDequeue(queues[i],&runningProcess))
+                if (PriDequeue(queues[i], &runningProcess))
                 {
                     Found = true;
                     break;
@@ -143,7 +141,7 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
             }
             if (!Found)
             {
-                StartQueue = (StartQueue+1) % NUM_QUEUES;
+                StartQueue = (StartQueue + 1) % NUM_QUEUES;
                 CurrentQueue = StartQueue;
                 continue;
             }
@@ -151,39 +149,37 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
             {
                 if (runningProcess->ID == -1)
                 {
-                    //handling process that never started before
+                    // handling process that never started before
                     runningProcess->ID = fork();
                     if (runningProcess->ID == 0)
                     {
-                        //Child
+                        // Child
                         char runtime[4];
                         sprintf(runtime, "%d", runningProcess->RunningTime);
                         execl("bin/process.out", "./process.out", runtime, NULL);
                     }
                     else
                     {
-                        //setting up PCB for first start
+                        // setting up PCB for first start
                         runningProcess->StartTime = getClk();
                         runningProcessStart = runningProcess->StartTime;
                         runningProcess->Running = true;
                         runningProcess->WaitTime = runningProcess->StartTime - runningProcess->ArrivalTime;
-                        GivenQuantum = (runningProcess->RemainingTime<=quantum) ? (runningProcess->RemainingTime) : (quantum); 
+                        GivenQuantum = (runningProcess->RemainingTime <= quantum) ? (runningProcess->RemainingTime) : (quantum);
                         fprintf(OutputFile, "At time %d process %d started arr %d total %d remain %d wait %d\n", runningProcess->StartTime, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
                     }
                 }
                 else
                 {
-                    //process already started but stopped
+                    // process already started but stopped
                     runningProcessStart = getClk();
                     kill(runningProcess->ID, SIGCONT);
                     runningProcess->Running = true;
                     runningProcess->WaitTime = runningProcessStart - runningProcess->StartTime - runningProcess->RunningTime + runningProcess->RemainingTime;
-                    GivenQuantum = (runningProcess->RemainingTime<=quantum) ? (runningProcess->RemainingTime) : (quantum);
-                    fprintf(OutputFile, "At time %d process %d resumed arr %d total %d remain %d wait %d\n", runningProcessStart, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime); 
+                    GivenQuantum = (runningProcess->RemainingTime <= quantum) ? (runningProcess->RemainingTime) : (quantum);
+                    fprintf(OutputFile, "At time %d process %d resumed arr %d total %d remain %d wait %d\n", runningProcessStart, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
                 }
-
             }
-
         }
     }
     for (int i = 0; i < NUM_QUEUES; i++)
@@ -199,7 +195,7 @@ void MLFQFree()
     {
         if (queues[i])
         {
-            while (PriDequeue(queues[i],&Dummy))
+            while (PriDequeue(queues[i], &Dummy))
                 free(Dummy);
             free(queues[i]);
         }
