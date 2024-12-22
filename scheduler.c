@@ -9,6 +9,8 @@
 void clearResources(int signum);
 int ProcessMessageQueue;
 Algorithm SchedulingAlgorithm;
+MemTree *MemoryTree;
+
 // TODO: implement the scheduler.
 // TODO: upon termination release the clock resources.
 
@@ -31,7 +33,7 @@ int main(int argc, char *argv[])
     PreformanceData.TotalWaitTime = 0;
     PreformanceData.totalRunTime = 0;
     PreformanceData.totalWTA = 0;
-    MemTree *Memory = CreateMemTree();
+    MemoryTree = CreateMemTree();
     FILE *perffile = fopen("scheduler.perf", "w");
     FILE *OutputFile = fopen("scheduler.log", "w");
     FILE *MemFile = fopen("memory.log", "w");
@@ -55,21 +57,6 @@ int main(int argc, char *argv[])
         break;
     }
     fprintf(perffile, "CPU utilization = %.2f%%  \nAvg WTA =  %f \nAvg Waiting = %f \n", PreformanceData.util, PreformanceData.AvgWeightedTurnaroundTime, PreformanceData.AvgWaitTime);
-
-    printMem(MemFile, Memory, 64);
-    printMem(MemFile, Memory, 8);
-    printMem(MemFile, Memory, 16);
-    TreeFree(Memory, 64);
-    printMem(MemFile, Memory, 16);
-    printMem(MemFile, Memory, 32);
-    printMem(MemFile, Memory, 512);
-
-    // fprintf(MemFile, "allocated at %d\n", TreeAllocate(Memory, 8)->Start);
-    // fprintf(MemFile, "allocated at %d\n", TreeAllocate(Memory, 16)->Start);
-    // TreeFree(Memory, 64);
-    // fprintf(MemFile, "allocated at %d\n", TreeAllocate(Memory, 16)->Start);
-    // fprintf(MemFile, "allocated at %d\n", TreeAllocate(Memory, 32)->Start);
-    // fprintf(MemFile, "allocated at %d\n", TreeAllocate(Memory, 512)->Start);
 
     fclose(OutputFile);
     fclose(perffile);
@@ -97,5 +84,6 @@ void clearResources(int signum)
         MLFQFree();
         break;
     }
+    DeleteTree(MemoryTree);
     exit(1);
 }

@@ -1,9 +1,10 @@
 #pragma once
 #include "headers.h"
+#include "DataStructures/MemTree.h"
 
 typedef struct PCB
 {
-    // process stats
+    // Process stats
     int generationID;
     int ID;
     int Priority;
@@ -13,14 +14,16 @@ typedef struct PCB
     int RemainingTime;
     int lastend;
 
-    // cpu stats
+    bool Running;
+    // Cpu stats
     int StartTime;
     int EndTime;
     int WaitTime;
 
-    //MLFQ special
+    // MLFQ special
     int originalPriority;
 
-    bool Running;
-
+    // Memory
+    int Size;
+    MemLocation Location;
 } PCB;

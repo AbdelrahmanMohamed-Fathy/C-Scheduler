@@ -56,6 +56,9 @@ MemLocation *RecursiveAllocate(TreeNode *treeNode, int ProcessSize)
     if (treeNode->RightNode)
         AllocatedLocation = RecursiveAllocate(treeNode->RightNode, ProcessSize);
 
+    if (AllocatedLocation)
+        return AllocatedLocation;
+
     if (treeNode->LeftNode || treeNode->RightNode)
         return AllocatedLocation;
     // Base case if no recursion possible (No branches)
@@ -67,20 +70,24 @@ MemLocation *RecursiveAllocate(TreeNode *treeNode, int ProcessSize)
 
     if (ProcessSize <= (treeNode->Size) / 2)
     {
+        // printf("Splitting node of size: %d, Start: %d, End: %d\n", treeNode->Size, treeNode->Location.Start, treeNode->Location.End);
         MemLocation LeftLocation;
         LeftLocation.Start = treeNode->Location.Start;
-        LeftLocation.End = treeNode->Location.End / 2;
+        LeftLocation.End = ((treeNode->Location.End - treeNode->Location.Start) / 2) + treeNode->Location.Start;
+        // printf("Start of Left: %d, End of Left: %d\n", LeftLocation.Start, LeftLocation.End);
         treeNode->LeftNode = CreateTreeNode((treeNode->Size) / 2, LeftLocation);
 
         MemLocation RightLocation;
-        RightLocation.Start = (treeNode->Location.End / 2) + 1;
+        RightLocation.Start = LeftLocation.End + 1;
         RightLocation.End = treeNode->Location.End;
+        // printf("Start of Right: %d, End of Right: %d\n", RightLocation.Start, RightLocation.End);
         treeNode->RightNode = CreateTreeNode((treeNode->Size) / 2, RightLocation);
 
         return RecursiveAllocate(treeNode->LeftNode, ProcessSize);
     }
     else
     {
+        // printf("Allocating node of size: %d, Start: %d, End: %d\n", treeNode->Size, treeNode->Location.Start, treeNode->Location.End);
         treeNode->Allocated = true;
         return &treeNode->Location;
     }
@@ -95,6 +102,7 @@ void AttemptCombine(TreeNode *treeNode)
 {
     if (!treeNode->LeftNode->LeftNode && !treeNode->RightNode->RightNode && treeNode->LeftNode->Allocated == false && treeNode->RightNode->Allocated == false)
     {
+        // printf("Combining Node of start: %d, end: %d with node with start: %d, end: %d\n", treeNode->LeftNode->Location.Start, treeNode->LeftNode->Location.End, treeNode->RightNode->Location.Start, treeNode->RightNode->Location.End);
         free(treeNode->LeftNode);
         free(treeNode->RightNode);
         treeNode->LeftNode = NULL;
@@ -134,7 +142,7 @@ bool RecursiveFree(TreeNode *treeNode, int Location)
     }
 
     // Without branches case
-    if (treeNode->Location.Start = Location)
+    if (treeNode->Location.Start == Location)
         return true;
     else
         return false;
@@ -145,8 +153,19 @@ bool TreeFree(MemTree *Tree, int Location)
     return RecursiveFree(Tree->Root, Location);
 }
 
+void DeleteTreeNodes(TreeNode *treeNode)
+{
+    if (!treeNode)
+        return;
+    DeleteTreeNodes(treeNode->LeftNode);
+    DeleteTreeNodes(treeNode->RightNode);
+    free(treeNode);
+}
+
 void DeleteTree(MemTree *Tree)
 {
-    // TODO delete nodes
+    if (!Tree)
+        return;
+    DeleteTreeNodes(Tree->Root);
     free(Tree);
 }
