@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
         FilePath = argv[1];
     }
     if (DebugMode)
-        printf("filePath= %s\n",FilePath);
+        printf("filePath= %s\n", FilePath);
 
     FILE *inputfile;
 
@@ -60,11 +60,11 @@ int main(int argc, char *argv[])
             continue;
         }
         processobj = (processData *)malloc(sizeof(processData));
-        if (sscanf(fileline, "%d\t%d\t\t%d\t\t%d\n", &processobj->id, &processobj->arrivaltime, &processobj->runningtime, &processobj->priority) == 4)
+        if (sscanf(fileline, "%d\t%d\t\t%d\t\t%d\t\t %d\n", &processobj->id, &processobj->arrivaltime, &processobj->runningtime, &processobj->priority, &processobj->memsize) == 5)
         {
             Enqueue(proccesqueue, &processobj);
             if (DebugMode == true)
-                printf("Process entering queue:\nID:%d\nArrival Time:%d\nRuntime:%d\nPriority:%d\n", processobj->id, processobj->arrivaltime, processobj->runningtime, processobj->priority);
+                printf("Process entering queue:\nID:%d\nArrival Time:%d\nRuntime:%d\nPriority:%d\nMemSize:%d\n", processobj->id, processobj->arrivaltime, processobj->runningtime, processobj->priority, processobj->memsize);
         }
         else
         {

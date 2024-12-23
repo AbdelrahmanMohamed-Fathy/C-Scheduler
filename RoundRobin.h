@@ -5,16 +5,16 @@
 PCB *runningprocess = NULL;
 PCB *newProcess;
 CircQueue *RRqueue;
-void RR(FILE *OutputFile, int ProcessMessageQueue, int quantum,cpuData* cpudata )
+void RR(FILE *OutputFile, FILE *MemFile, int ProcessMessageQueue, int quantum, cpuData *cpudata, MemTree *MemoryTree)
 {
-    int wait_time=0;
-    //bool emptyqueueflag;
-    bool currentprocessdone=true;
+    int wait_time = 0;
+    // bool emptyqueueflag;
+    bool currentprocessdone = true;
     bool messagesdone = false;
-    bool firsttime =true;
+    bool firsttime = true;
     int time;
     msg RRmsg;
-    RRqueue=CreatecircQueue();
+    RRqueue = CreatecircQueue();
 
     while (!isCircQueueEmpty(RRqueue) || !messagesdone || runningprocess)
     {
@@ -22,32 +22,34 @@ void RR(FILE *OutputFile, int ProcessMessageQueue, int quantum,cpuData* cpudata 
         {
             messagesdone = true;
         }
-        else if(msgrcv(ProcessMessageQueue, &RRmsg, sizeof(msg), 1, IPC_NOWAIT) != -1)
+        else if (msgrcv(ProcessMessageQueue, &RRmsg, sizeof(msg), 1, IPC_NOWAIT) != -1)
         {
             newProcess = (PCB *)malloc(sizeof(PCB));
             newProcess->generationID = RRmsg.data.id;
-            newProcess->ID = -1; //not created yet
+            newProcess->ID = -1; // not created yet
             newProcess->Priority = RRmsg.data.priority;
             newProcess->ArrivalTime = RRmsg.data.arrivaltime;
             newProcess->RunningTime = RRmsg.data.runningtime;
             newProcess->RemainingTime = RRmsg.data.runningtime;
-            newProcess->StartTime = -1; //not started yet
+            newProcess->StartTime = -1; // not started yet
             newProcess->EndTime = -1;
             newProcess->WaitTime = 0;
-            newProcess->lastend=0;
+            newProcess->lastend = 0;
+            newProcess->Size = RRmsg.data.memsize;
             newProcess->Running = false;
-            CircEnqueue(RRqueue, &newProcess); 
+            CircEnqueue(RRqueue, &newProcess);
         }
-        
+
         if (!isCircQueueEmpty(RRqueue) || !currentprocessdone)
         {
-            if(currentprocessdone){
+            if (currentprocessdone)
+            {
                 CircDequeue(RRqueue, &runningprocess);
-                firsttime=true;
-                currentprocessdone=false;
+                firsttime = true;
+                currentprocessdone = false;
             }
             if (runningprocess->ID == -1)
-            {   // if its the first time for the process to run
+            { // if its the first time for the process to run
                 runningprocess->ID = fork();
                 if (runningprocess->ID == 0)
                 {
@@ -65,98 +67,105 @@ void RR(FILE *OutputFile, int ProcessMessageQueue, int quantum,cpuData* cpudata 
                 runningprocess->StartTime = getClk();
                 runningprocess->WaitTime = runningprocess->StartTime - runningprocess->ArrivalTime;
                 runningprocess->Running = true;
+                MemLocation *allocatedLocation = TreeAllocate(MemoryTree, runningprocess->Size);
+                runningprocess->Location = *allocatedLocation;
+                fprintf(MemFile, "At time %d allocated %d bytes for process %d from %d to %d\n", runningprocess->StartTime, runningprocess->Size, runningprocess->generationID, runningprocess->Location.Start, runningprocess->Location.End);
             }
             if (runningprocess->RemainingTime <= quantum)
             {
-                //if the process will finish in the current quantum
+                // if the process will finish in the current quantum
                 kill(runningprocess->ID, SIGCONT);
-                runningprocess->Running=true;
-                if(currentprocessdone || firsttime){
-                    if(firsttime)
+                runningprocess->Running = true;
+                if (currentprocessdone || firsttime)
+                {
+                    if (firsttime)
                     {
                         time = getClk();
                     }
                     wait_time = (time + runningprocess->RemainingTime) - getClk();
-                    if(runningprocess->RemainingTime == runningprocess->RunningTime){
-                        fprintf(OutputFile, "At time %d process %d started arr %d total %d remain %d wait %d\n",getClk() , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
-                        printf("At time %d process %d started arr %d total %d remain %d wait %d\n",getClk() , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
+                    if (runningprocess->RemainingTime == runningprocess->RunningTime)
+                    {
+                        fprintf(OutputFile, "At time %d process %d started arr %d total %d remain %d wait %d\n", getClk(), runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime, runningprocess->WaitTime);
+                        printf("At time %d process %d started arr %d total %d remain %d wait %d\n", getClk(), runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime, runningprocess->WaitTime);
                     }
-                    else{
-                        runningprocess->WaitTime+=getClk() - runningprocess->lastend;
-                        fprintf(OutputFile, "At time %d process %d resumed arr %d total %d remain %d wait %d\n",getClk() , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
-                        printf("At time %d process %d resumed arr %d total %d remain %d wait %d\n",getClk() , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
+                    else
+                    {
+                        runningprocess->WaitTime += getClk() - runningprocess->lastend;
+                        fprintf(OutputFile, "At time %d process %d resumed arr %d total %d remain %d wait %d\n", getClk(), runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime, runningprocess->WaitTime);
+                        printf("At time %d process %d resumed arr %d total %d remain %d wait %d\n", getClk(), runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime, runningprocess->WaitTime);
                     }
-                        
                 }
                 wait_time = (time + runningprocess->RemainingTime) - getClk();
                 if (wait_time > 0)
                 {
-                    currentprocessdone=false;
-                    firsttime=false;
+                    currentprocessdone = false;
+                    firsttime = false;
                     continue;
                 }
                 else
                 {
-                    
-                    currentprocessdone=true;
+
+                    currentprocessdone = true;
                     runningprocess->EndTime = getClk();
                     runningprocess->lastend = getClk();
                     runningprocess->RemainingTime = 0;
                     runningprocess->Running = false;
-                    fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n",runningprocess->EndTime , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime,runningprocess->EndTime - runningprocess->ArrivalTime,(runningprocess->EndTime - runningprocess->ArrivalTime) / (float)(runningprocess->RunningTime));
-                    printf("At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n",runningprocess->EndTime , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime,runningprocess->EndTime - runningprocess->ArrivalTime,(runningprocess->EndTime - runningprocess->ArrivalTime) / (float)(runningprocess->RunningTime));
+                    TreeFree(MemoryTree, runningprocess->Location.Start);
+                    fprintf(MemFile, "At time %d freed %d bytes for process %d from %d to %d\n", runningprocess->StartTime, runningprocess->Size, runningprocess->generationID, runningprocess->Location.Start, runningprocess->Location.End);
+                    fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n", runningprocess->EndTime, runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime, runningprocess->WaitTime, runningprocess->EndTime - runningprocess->ArrivalTime, (runningprocess->EndTime - runningprocess->ArrivalTime) / (float)(runningprocess->RunningTime));
+                    printf("At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n", runningprocess->EndTime, runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime, runningprocess->WaitTime, runningprocess->EndTime - runningprocess->ArrivalTime, (runningprocess->EndTime - runningprocess->ArrivalTime) / (float)(runningprocess->RunningTime));
                     cpucalculations(cpudata, runningprocess);
-                }   
-                
+                }
             }
             else
-            {   //if the process will not finish in the current quantum
+            { // if the process will not finish in the current quantum
                 kill(runningprocess->ID, SIGCONT);
-                runningprocess->Running=true;
-                if(currentprocessdone || firsttime){
-                    if(firsttime)
+                runningprocess->Running = true;
+                if (currentprocessdone || firsttime)
+                {
+                    if (firsttime)
                     {
                         time = getClk();
                     }
                     wait_time = (time + quantum) - getClk();
-                    if(runningprocess->RemainingTime == runningprocess->RunningTime){
-                        fprintf(OutputFile, "At time %d process %d started arr %d total %d remain %d wait %d\n",getClk() , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
-                        printf("At time %d process %d started arr %d total %d remain %d wait %d\n",getClk() , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
+                    if (runningprocess->RemainingTime == runningprocess->RunningTime)
+                    {
+                        fprintf(OutputFile, "At time %d process %d started arr %d total %d remain %d wait %d\n", getClk(), runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime, runningprocess->WaitTime);
+                        printf("At time %d process %d started arr %d total %d remain %d wait %d\n", getClk(), runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime, runningprocess->WaitTime);
                     }
                     else
                     {
-                        runningprocess->WaitTime+=getClk() - runningprocess->lastend;
-                        fprintf(OutputFile, "At time %d process %d resumed arr %d total %d remain %d wait %d\n",getClk() , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
-                        printf("At time %d process %d resumed arr %d total %d remain %d wait %d\n",getClk() , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);                        
+                        runningprocess->WaitTime += getClk() - runningprocess->lastend;
+                        fprintf(OutputFile, "At time %d process %d resumed arr %d total %d remain %d wait %d\n", getClk(), runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime, runningprocess->WaitTime);
+                        printf("At time %d process %d resumed arr %d total %d remain %d wait %d\n", getClk(), runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime, runningprocess->WaitTime);
                     }
                 }
                 wait_time = (time + quantum) - getClk();
                 if (wait_time > 0)
                 {
-                    currentprocessdone=false;
-                    firsttime=false;
+                    currentprocessdone = false;
+                    firsttime = false;
                     continue;
                 }
                 else
                 {
-                    currentprocessdone=true;
+                    currentprocessdone = true;
                     runningprocess->RemainingTime -= quantum;
-                    if(runningprocess->WaitTime<0)
-                        runningprocess->WaitTime=0;
+                    if (runningprocess->WaitTime < 0)
+                        runningprocess->WaitTime = 0;
                     kill(runningprocess->ID, SIGSTOP);
-                    runningprocess->Running=false;
-                    runningprocess->lastend=getClk();
-                    fprintf(OutputFile, "At time %d process %d stopped arr %d total %d remain %d wait %d\n",getClk() , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
-                    printf("At time %d process %d stopped arr %d total %d remain %d wait %d\n",getClk() , runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime,runningprocess->WaitTime);
-                }   
-                
+                    runningprocess->Running = false;
+                    runningprocess->lastend = getClk();
+                    fprintf(OutputFile, "At time %d process %d stopped arr %d total %d remain %d wait %d\n", getClk(), runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime, runningprocess->WaitTime);
+                    printf("At time %d process %d stopped arr %d total %d remain %d wait %d\n", getClk(), runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime, runningprocess->WaitTime);
+                }
             }
             if (runningprocess->RemainingTime > 0 && currentprocessdone)
-            {   //if the process still has remaining time
+            { // if the process still has remaining time
                 CircEnqueue(RRqueue, &runningprocess);
             }
-            else if(currentprocessdone)
-            {   //if the process has finished
+            else if (currentprocessdone)
+            { // if the process has finished
                 free(runningprocess);
                 runningprocess = NULL;
             }
@@ -166,11 +175,12 @@ void RR(FILE *OutputFile, int ProcessMessageQueue, int quantum,cpuData* cpudata 
     free(RRqueue);
 }
 
-void RRFree(){
-    PCB* Dummy;
+void RRFree()
+{
+    PCB *Dummy;
     if (RRqueue)
     {
-        while (CircDequeue(RRqueue,&Dummy))
+        while (CircDequeue(RRqueue, &Dummy))
             free(Dummy);
         free(RRqueue);
     }

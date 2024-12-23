@@ -6,7 +6,7 @@ priQueue *ReadyQueue;
 PCB *CurrentRunningProcess;
 PCB *newProcess;
 
-void HPF(FILE *OutputFile, int ProcessArrivalQueue, cpuData *perfdata)
+void HPF(FILE *OutputFile, FILE *MemFile, int ProcessArrivalQueue, cpuData *perfdata, MemTree *MemoryTree)
 {
     CurrentRunningProcess = NULL;
     ReadyQueue = CreatePriQueue();
@@ -41,6 +41,7 @@ void HPF(FILE *OutputFile, int ProcessArrivalQueue, cpuData *perfdata)
             newProcess->EndTime = -1;
             newProcess->WaitTime = 0;
             newProcess->Running = false;
+            newProcess->Size = MsgData.data.memsize;
             PriEnqueue(ReadyQueue, &newProcess, newProcess->Priority);
             newProcess = NULL;
             // fprintf(OutputFile, "#ReadyQueue has %d processes\n", ReadyQueue->count);
@@ -56,6 +57,8 @@ void HPF(FILE *OutputFile, int ProcessArrivalQueue, cpuData *perfdata)
                 CurrentRunningProcess->EndTime = getClk();
                 CurrentRunningProcess->RemainingTime -= (CurrentRunningProcess->EndTime - CurrentRunningProcessStart);
                 cpucalculations(perfdata, CurrentRunningProcess);
+                TreeFree(MemoryTree, CurrentRunningProcess->Location.Start);
+                fprintf(MemFile, "At time %d freed %d bytes for process %d from %d to %d\n", CurrentRunningProcess->StartTime, CurrentRunningProcess->Size, CurrentRunningProcess->generationID, CurrentRunningProcess->Location.Start, CurrentRunningProcess->Location.End);
                 fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n", CurrentRunningProcess->EndTime, CurrentRunningProcess->generationID, CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime, CurrentRunningProcess->EndTime - CurrentRunningProcess->ArrivalTime, (CurrentRunningProcess->EndTime - CurrentRunningProcess->ArrivalTime) / (float)(CurrentRunningProcess->RunningTime));
                 // printf("At time %d process %d finished arr %d total %d remain %d wait %d\n", CurrentRunningProcess->EndTime, CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
                 free(CurrentRunningProcess);
@@ -101,6 +104,9 @@ void HPF(FILE *OutputFile, int ProcessArrivalQueue, cpuData *perfdata)
                     CurrentRunningProcessStart = CurrentRunningProcess->StartTime;
                     CurrentRunningProcess->Running = true;
                     CurrentRunningProcess->WaitTime = CurrentRunningProcess->StartTime - CurrentRunningProcess->ArrivalTime;
+                    MemLocation *allocatedLocation = TreeAllocate(MemoryTree, CurrentRunningProcess->Size);
+                    CurrentRunningProcess->Location = *allocatedLocation;
+                    fprintf(MemFile, "At time %d allocated %d bytes for process %d from %d to %d\n", CurrentRunningProcess->StartTime, CurrentRunningProcess->Size, CurrentRunningProcess->generationID, CurrentRunningProcess->Location.Start, CurrentRunningProcess->Location.End);
                     fprintf(OutputFile, "At time %d process %d started arr %d total %d remain %d wait %d\n", CurrentRunningProcess->StartTime, CurrentRunningProcess->generationID, CurrentRunningProcess->ArrivalTime, CurrentRunningProcess->RunningTime, CurrentRunningProcess->RemainingTime, CurrentRunningProcess->WaitTime);
                     // printf("At time %d process %d started arr %d total %d remain %d wait %d\n",CurrentRunningProcess->StartTime,CurrentRunningProcess->generationID,CurrentRunningProcess->ArrivalTime,CurrentRunningProcess->RunningTime,CurrentRunningProcess->RemainingTime,CurrentRunningProcess->WaitTime);
                     continue;

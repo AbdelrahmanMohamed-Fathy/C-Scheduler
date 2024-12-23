@@ -7,7 +7,7 @@ priQueue *queues[NUM_QUEUES];
 PCB *runningProcess;
 PCB *newProcess;
 
-void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfdata)
+void MLFQ(FILE *OutputFile, FILE *MemFile, int ProcessMessageQueue, int quantum, cpuData *perfdata, MemTree *MemoryTree)
 {
     for (int i = 0; i < NUM_QUEUES; i++)
     {
@@ -57,6 +57,7 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
             newProcess->WaitTime = 0;
             newProcess->lastend = 0;
             newProcess->Running = false;
+            newProcess->Size = MLFQmsg.data.memsize;
             PriEnqueue(queues[newProcess->Priority], &newProcess, newProcess->ArrivalTime);
             fprintf(OutputFile, "#process with id=%d arrived at clock=%d and running time=%d \n", newProcess->generationID, newProcess->ArrivalTime, newProcess->RunningTime);
             newProcess = NULL;
@@ -82,6 +83,8 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
                         runningProcess->RemainingTime -= GivenQuantum;
                         runningProcess->Running = false;
                         cpucalculations(perfdata, runningProcess);
+                        TreeFree(MemoryTree, runningProcess->Location.Start);
+                        fprintf(MemFile, "At time %d freed %d bytes for process %d from %d to %d\n", runningProcess->StartTime, runningProcess->Size, runningProcess->generationID, runningProcess->Location.Start, runningProcess->Location.End);
                         fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n", runningProcess->EndTime, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime, runningProcess->EndTime - runningProcess->ArrivalTime, (runningProcess->EndTime - runningProcess->ArrivalTime) / (float)(runningProcess->RunningTime));
                         free(runningProcess);
                         runningProcess = NULL;
@@ -167,6 +170,9 @@ void MLFQ(FILE *OutputFile, int ProcessMessageQueue, int quantum, cpuData *perfd
                         runningProcess->Running = true;
                         runningProcess->WaitTime = runningProcess->StartTime - runningProcess->ArrivalTime;
                         GivenQuantum = (runningProcess->RemainingTime <= quantum) ? (runningProcess->RemainingTime) : (quantum);
+                        MemLocation *allocatedLocation = TreeAllocate(MemoryTree, runningProcess->Size);
+                        runningProcess->Location = *allocatedLocation;
+                        fprintf(MemFile, "At time %d allocated %d bytes for process %d from %d to %d\n", runningProcess->StartTime, runningProcess->Size, runningProcess->generationID, runningProcess->Location.Start, runningProcess->Location.End);
                         fprintf(OutputFile, "At time %d process %d started arr %d total %d remain %d wait %d\n", runningProcess->StartTime, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime);
                     }
                 }

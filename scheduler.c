@@ -41,19 +41,19 @@ int main(int argc, char *argv[])
     {
     case Shortest_Job_First:
         fprintf(OutputFile, "#SJF:\n");
-        SJF(OutputFile, ProcessMessageQueue, &PreformanceData);
+        SJF(OutputFile, MemFile, ProcessMessageQueue, &PreformanceData, MemoryTree);
         break;
     case Premptive_Highest_Priority_First:
         fprintf(OutputFile, "#HPF:\n");
-        HPF(OutputFile, ProcessMessageQueue, &PreformanceData);
+        HPF(OutputFile, MemFile, ProcessMessageQueue, &PreformanceData, MemoryTree);
         break;
     case Round_Robin:
         fprintf(OutputFile, "#RR:\n");
-        RR(OutputFile, ProcessMessageQueue, Quantum, &PreformanceData);
+        RR(OutputFile, MemFile, ProcessMessageQueue, Quantum, &PreformanceData, MemoryTree);
         break;
     case Multiple_Level_Feedback_Loop:
         fprintf(OutputFile, "#MLFP:\n");
-        MLFQ(OutputFile, ProcessMessageQueue, Quantum, &PreformanceData);
+        MLFQ(OutputFile, MemFile, ProcessMessageQueue, Quantum, &PreformanceData, MemoryTree);
         break;
     }
     fprintf(perffile, "CPU utilization = %.2f%%  \nAvg WTA =  %f \nAvg Waiting = %f \n", PreformanceData.util, PreformanceData.AvgWeightedTurnaroundTime, PreformanceData.AvgWaitTime);

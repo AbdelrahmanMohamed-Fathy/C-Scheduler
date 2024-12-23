@@ -25,6 +25,7 @@ typedef struct processData
     int priority;
     int runningtime;
     int id;
+    int memsize;
 } processData;
 
 typedef struct msg
