@@ -84,7 +84,7 @@ void MLFQ(FILE *OutputFile, FILE *MemFile, int ProcessMessageQueue, int quantum,
                         runningProcess->Running = false;
                         cpucalculations(perfdata, runningProcess);
                         TreeFree(MemoryTree, runningProcess->Location.Start);
-                        fprintf(MemFile, "At time %d freed %d bytes for process %d from %d to %d\n", runningProcess->StartTime, runningProcess->Size, runningProcess->generationID, runningProcess->Location.Start, runningProcess->Location.End);
+                        fprintf(MemFile, "At time %d freed %d bytes for process %d from %d to %d\n", runningProcess->EndTime, runningProcess->Size, runningProcess->generationID, runningProcess->Location.Start, runningProcess->Location.End);
                         fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n", runningProcess->EndTime, runningProcess->generationID, runningProcess->ArrivalTime, runningProcess->RunningTime, runningProcess->RemainingTime, runningProcess->WaitTime, runningProcess->EndTime - runningProcess->ArrivalTime, (runningProcess->EndTime - runningProcess->ArrivalTime) / (float)(runningProcess->RunningTime));
                         free(runningProcess);
                         runningProcess = NULL;

@@ -60,7 +60,7 @@ void SJF(FILE *OutputFile, FILE *MemFile, int ProcessMessageQueue, cpuData *perf
                     currentlyrunningproc->RemainingTime = 0;
                     cpucalculations(perfdata, currentlyrunningproc);
                     TreeFree(MemoryTree, currentlyrunningproc->Location.Start);
-                    fprintf(MemFile, "At time %d freed %d bytes for process %d from %d to %d\n", currentlyrunningproc->StartTime, currentlyrunningproc->Size, currentlyrunningproc->generationID, currentlyrunningproc->Location.Start, currentlyrunningproc->Location.End);
+                    fprintf(MemFile, "At time %d freed %d bytes for process %d from %d to %d\n", currentlyrunningproc->EndTime, currentlyrunningproc->Size, currentlyrunningproc->generationID, currentlyrunningproc->Location.Start, currentlyrunningproc->Location.End);
                     fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n", currentlyrunningproc->EndTime, currentlyrunningproc->generationID, currentlyrunningproc->ArrivalTime, currentlyrunningproc->RunningTime, currentlyrunningproc->RemainingTime, currentlyrunningproc->WaitTime, currentlyrunningproc->EndTime - currentlyrunningproc->ArrivalTime, (currentlyrunningproc->EndTime - currentlyrunningproc->ArrivalTime) / (float)(currentlyrunningproc->RunningTime));
                     free(currentlyrunningproc);
                     currentlyrunningproc = NULL;

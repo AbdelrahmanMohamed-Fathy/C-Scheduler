@@ -111,7 +111,7 @@ void RR(FILE *OutputFile, FILE *MemFile, int ProcessMessageQueue, int quantum, c
                     runningprocess->RemainingTime = 0;
                     runningprocess->Running = false;
                     TreeFree(MemoryTree, runningprocess->Location.Start);
-                    fprintf(MemFile, "At time %d freed %d bytes for process %d from %d to %d\n", runningprocess->StartTime, runningprocess->Size, runningprocess->generationID, runningprocess->Location.Start, runningprocess->Location.End);
+                    fprintf(MemFile, "At time %d freed %d bytes for process %d from %d to %d\n", runningprocess->EndTime, runningprocess->Size, runningprocess->generationID, runningprocess->Location.Start, runningprocess->Location.End);
                     fprintf(OutputFile, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n", runningprocess->EndTime, runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime, runningprocess->WaitTime, runningprocess->EndTime - runningprocess->ArrivalTime, (runningprocess->EndTime - runningprocess->ArrivalTime) / (float)(runningprocess->RunningTime));
                     printf("At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %f\n", runningprocess->EndTime, runningprocess->generationID, runningprocess->ArrivalTime, runningprocess->RunningTime, runningprocess->RemainingTime, runningprocess->WaitTime, runningprocess->EndTime - runningprocess->ArrivalTime, (runningprocess->EndTime - runningprocess->ArrivalTime) / (float)(runningprocess->RunningTime));
                     cpucalculations(cpudata, runningprocess);
